@@ -1,5 +1,5 @@
 /*
- * dleyna
+ * dLeyna
  *
  * Copyright (C) 2012-2013 Intel Corporation. All rights reserved.
  *
@@ -36,10 +36,10 @@
 
 #include "host-service.h"
 
-#define HOST_SERVICE_ROOT "/rendererserviceupnp"
+#define DLR_HOST_SERVICE_ROOT "/rendererserviceupnp"
 
-typedef struct rsu_host_file_t_ rsu_host_file_t;
-struct rsu_host_file_t_ {
+typedef struct dlr_host_file_t_ dlr_host_file_t;
+struct dlr_host_file_t_ {
 	unsigned int id;
 	GPtrArray *clients;
 	gchar *mime_type;
@@ -49,14 +49,14 @@ struct rsu_host_file_t_ {
 	gchar *dlna_header;
 };
 
-typedef struct rsu_host_server_t_ rsu_host_server_t;
-struct rsu_host_server_t_ {
+typedef struct dlr_host_server_t_ dlr_host_server_t;
+struct dlr_host_server_t_ {
 	GHashTable *files;
 	SoupServer *soup_server;
 	unsigned int counter;
 };
 
-struct rsu_host_service_t_ {
+struct dlr_host_service_t_ {
 	GHashTable *servers;
 };
 
@@ -125,12 +125,12 @@ static gchar *prv_compute_dlna_header(const gchar *filename)
 		flags |= GUPNP_DLNA_FLAGS_CONNECTION_STALL;
 		flags |= GUPNP_DLNA_FLAGS_DLNA_V15;
 
-		if (g_content_type_is_a(mime_type, "image/*"))
+		if (g_content_type_is_a(mime_type, "image/*")) {
 			flags |= GUPNP_DLNA_FLAGS_INTERACTIVE_TRANSFER_MODE;
-		else if (g_content_type_is_a(mime_type, "audio/*")
-			|| g_content_type_is_a(mime_type, "video/*"))
+		} else if (g_content_type_is_a(mime_type, "audio/*") ||
+			   g_content_type_is_a(mime_type, "video/*")) {
 			flags |= GUPNP_DLNA_FLAGS_STREAMING_TRANSFER_MODE;
-		else {
+		} else {
 			DLEYNA_LOG_WARNING("Unsupported Mime Type: %s",
 					   mime_type);
 
@@ -156,7 +156,7 @@ on_error:
 
 static void prv_host_file_delete(gpointer host_file)
 {
-	rsu_host_file_t *hf = host_file;
+	dlr_host_file_t *hf = host_file;
 	unsigned int i;
 
 	if (hf) {
@@ -172,10 +172,10 @@ static void prv_host_file_delete(gpointer host_file)
 	}
 }
 
-static rsu_host_file_t *prv_host_file_new(const gchar *file, unsigned int id,
+static dlr_host_file_t *prv_host_file_new(const gchar *file, unsigned int id,
 					  GError **error)
 {
-	rsu_host_file_t *hf = NULL;
+	dlr_host_file_t *hf = NULL;
 	gchar *extension;
 	gchar *content_type = NULL;
 
@@ -187,7 +187,7 @@ static rsu_host_file_t *prv_host_file_new(const gchar *file, unsigned int id,
 		goto on_error;
 	}
 
-	hf = g_new0(rsu_host_file_t, 1);
+	hf = g_new0(dlr_host_file_t, 1);
 	hf->id = id;
 	hf->clients = g_ptr_array_new_with_free_func(g_free);
 
@@ -212,7 +212,7 @@ static rsu_host_file_t *prv_host_file_new(const gchar *file, unsigned int id,
 	g_free(content_type);
 
 	extension = strrchr(file, '.');
-	hf->path = g_strdup_printf(HOST_SERVICE_ROOT"/%d%s",
+	hf->path = g_strdup_printf(DLR_HOST_SERVICE_ROOT"/%d%s",
 				   hf->id, extension ? extension : "");
 
 	hf->dlna_header = prv_compute_dlna_header(file);
@@ -229,7 +229,7 @@ on_error:
 
 static void prv_host_server_delete(gpointer host_server)
 {
-	rsu_host_server_t *server = host_server;
+	dlr_host_server_t *server = host_server;
 
 	if (server) {
 		soup_server_quit(server->soup_server);
@@ -239,11 +239,11 @@ static void prv_host_server_delete(gpointer host_server)
 	}
 }
 
-static rsu_host_file_t *prv_host_server_find_file(rsu_host_server_t *hs,
+static dlr_host_file_t *prv_host_server_find_file(dlr_host_server_t *hs,
 						  const gchar *url,
 						  const gchar **file_name)
 {
-	rsu_host_file_t *retval = NULL;
+	dlr_host_file_t *retval = NULL;
 	GHashTableIter iter;
 	gpointer key;
 	gpointer value;
@@ -251,7 +251,7 @@ static rsu_host_file_t *prv_host_server_find_file(rsu_host_server_t *hs,
 	g_hash_table_iter_init(&iter, hs->files);
 
 	while (g_hash_table_iter_next(&iter, &key, &value)) {
-		if (!strcmp(((rsu_host_file_t *)value)->path, url)) {
+		if (!strcmp(((dlr_host_file_t *)value)->path, url)) {
 			retval = value;
 			*file_name = key;
 			break;
@@ -263,7 +263,7 @@ static rsu_host_file_t *prv_host_server_find_file(rsu_host_server_t *hs,
 
 static void prv_soup_message_finished_cb(SoupMessage *msg, gpointer user_data)
 {
-	rsu_host_file_t *hf = user_data;
+	dlr_host_file_t *hf = user_data;
 
 	if (hf->mapped_count > 0) {
 		g_mapped_file_unref(hf->mapped_file);
@@ -278,13 +278,13 @@ static void prv_soup_server_cb(SoupServer *server, SoupMessage *msg,
 			       const char *path, GHashTable *query,
 			       SoupClientContext *client, gpointer user_data)
 {
-	rsu_host_file_t *hf;
-	rsu_host_server_t *hs = user_data;
+	dlr_host_file_t *hf;
+	dlr_host_server_t *hs = user_data;
 	const gchar *file_name;
 	const char *hdr;
 
-	if ((msg->method != SOUP_METHOD_GET)
-		&& (msg->method != SOUP_METHOD_HEAD)) {
+	if ((msg->method != SOUP_METHOD_GET) &&
+	    (msg->method != SOUP_METHOD_HEAD)) {
 		soup_message_set_status(msg, SOUP_STATUS_NOT_IMPLEMENTED);
 		goto on_error;
 	}
@@ -333,8 +333,8 @@ static void prv_soup_server_cb(SoupServer *server, SoupMessage *msg,
 				 G_CALLBACK(prv_soup_message_finished_cb), hf);
 
 
-		soup_message_set_response(msg, hf->mime_type,
-				SOUP_MEMORY_STATIC,
+		soup_message_set_response(
+				msg, hf->mime_type, SOUP_MEMORY_STATIC,
 				g_mapped_file_get_contents(hf->mapped_file),
 				g_mapped_file_get_length(hf->mapped_file));
 	}
@@ -346,10 +346,10 @@ on_error:
 	return;
 }
 
-static rsu_host_server_t *prv_host_server_new(const gchar *device_if,
+static dlr_host_server_t *prv_host_server_new(const gchar *device_if,
 					      GError **error)
 {
-	rsu_host_server_t *server = NULL;
+	dlr_host_server_t *server = NULL;
 	SoupAddress *addr;
 
 	addr = soup_address_new(device_if, SOUP_ADDRESS_ANY_PORT);
@@ -362,13 +362,13 @@ static rsu_host_server_t *prv_host_server_new(const gchar *device_if,
 		goto on_error;
 	}
 
-	server = g_new(rsu_host_server_t, 1);
+	server = g_new(dlr_host_server_t, 1);
 	server->files = g_hash_table_new_full(g_str_hash, g_str_equal,
 					      g_free, prv_host_file_delete);
 
 	server->soup_server = soup_server_new(SOUP_SERVER_INTERFACE, addr,
 					      NULL);
-	soup_server_add_handler(server->soup_server, HOST_SERVICE_ROOT,
+	soup_server_add_handler(server->soup_server, DLR_HOST_SERVICE_ROOT,
 				prv_soup_server_cb, server, NULL);
 	soup_server_run_async(server->soup_server);
 	server->counter = 0;
@@ -380,23 +380,23 @@ on_error:
 	return server;
 }
 
-void rsu_host_service_new(rsu_host_service_t **host_service)
+void dlr_host_service_new(dlr_host_service_t **host_service)
 {
-	rsu_host_service_t *hs;
+	dlr_host_service_t *hs;
 
-	hs = g_new(rsu_host_service_t, 1);
+	hs = g_new(dlr_host_service_t, 1);
 	hs->servers = g_hash_table_new_full(g_str_hash, g_str_equal,
 					    g_free, prv_host_server_delete);
 
 	*host_service = hs;
 }
 
-static gchar *prv_add_new_file(rsu_host_server_t *server, const gchar *client,
+static gchar *prv_add_new_file(dlr_host_server_t *server, const gchar *client,
 			       const gchar *device_if, const gchar *file,
 			       GError **error)
 {
 	unsigned int i;
-	rsu_host_file_t *hf;
+	dlr_host_file_t *hf;
 	gchar *str;
 
 	hf = g_hash_table_lookup(server->files, file);
@@ -429,11 +429,11 @@ on_error:
 	return NULL;
 }
 
-gchar *rsu_host_service_add(rsu_host_service_t *host_service,
+gchar *dlr_host_service_add(dlr_host_service_t *host_service,
 			    const gchar *device_if, const gchar *client,
 			    const gchar *file, GError **error)
 {
-	rsu_host_server_t *server;
+	dlr_host_server_t *server;
 	gchar *retval = NULL;
 
 	server = g_hash_table_lookup(host_service->servers, device_if);
@@ -455,12 +455,12 @@ on_error:
 	return retval;
 }
 
-static gboolean prv_remove_client(rsu_host_service_t *host_service,
+static gboolean prv_remove_client(dlr_host_service_t *host_service,
 				  const gchar *client,
-				  rsu_host_server_t *server,
+				  dlr_host_server_t *server,
 				  const gchar *device_if,
 				  const gchar *file,
-				  rsu_host_file_t *hf)
+				  dlr_host_file_t *hf)
 {
 	unsigned int i;
 	gboolean retval = FALSE;
@@ -481,13 +481,13 @@ on_error:
 	return retval;
 }
 
-gboolean rsu_host_service_remove(rsu_host_service_t *host_service,
+gboolean dlr_host_service_remove(dlr_host_service_t *host_service,
 				 const gchar *device_if, const gchar *client,
 				 const gchar *file)
 {
 	gboolean retval = FALSE;
-	rsu_host_file_t *hf;
-	rsu_host_server_t *server;
+	dlr_host_file_t *hf;
+	dlr_host_server_t *server;
 
 	server = g_hash_table_lookup(host_service->servers, device_if);
 
@@ -515,7 +515,7 @@ on_error:
 	return retval;
 }
 
-void rsu_host_service_lost_client(rsu_host_service_t *host_service,
+void dlr_host_service_lost_client(dlr_host_service_t *host_service,
 				  const gchar *client)
 {
 	GHashTableIter iter;
@@ -524,8 +524,8 @@ void rsu_host_service_lost_client(rsu_host_service_t *host_service,
 	gpointer key;
 	gpointer value2;
 	gpointer key2;
-	rsu_host_server_t *server;
-	rsu_host_file_t *hf;
+	dlr_host_server_t *server;
+	dlr_host_file_t *hf;
 
 	g_hash_table_iter_init(&iter, host_service->servers);
 
@@ -551,7 +551,7 @@ void rsu_host_service_lost_client(rsu_host_service_t *host_service,
 	}
 }
 
-void rsu_host_service_delete(rsu_host_service_t *host_service)
+void dlr_host_service_delete(dlr_host_service_t *host_service)
 {
 	if (host_service) {
 		g_hash_table_unref(host_service->servers);

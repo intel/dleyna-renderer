@@ -1,5 +1,5 @@
 /*
- * dleyna
+ * dLeyna
  *
  * Copyright (C) 2012-2013 Intel Corporation. All rights reserved.
  *
@@ -20,61 +20,79 @@
  *
  */
 
-#ifndef RSU_UPNP_H__
-#define RSU_UPNP_H__
+#ifndef DLR_UPNP_H__
+#define DLR_UPNP_H__
 
 #include <libdleyna/core/connector.h>
 #include "task.h"
 
-typedef struct rsu_upnp_t_ rsu_upnp_t;
+typedef struct dlr_upnp_t_ dlr_upnp_t;
 
-enum rsu_interface_type_ {
-	RSU_INTERFACE_INFO_PROPERTIES,
-	RSU_INTERFACE_INFO_ROOT,
-	RSU_INTERFACE_INFO_PLAYER,
-	RSU_INTERFACE_INFO_PUSH_HOST,
-	RSU_INTERFACE_INFO_DEVICE,
-	RSU_INTERFACE_INFO_MAX
+enum dlr_interface_type_ {
+	DLR_INTERFACE_INFO_PROPERTIES,
+	DLR_INTERFACE_INFO_ROOT,
+	DLR_INTERFACE_INFO_PLAYER,
+	DLR_INTERFACE_INFO_PUSH_HOST,
+	DLR_INTERFACE_INFO_DEVICE,
+	DLR_INTERFACE_INFO_MAX
 };
 
-typedef void (*rsu_upnp_callback_t)(const gchar *path);
-typedef void (*rsu_upnp_task_complete_t)(rsu_task_t *task, GError *error);
+typedef void (*dlr_upnp_callback_t)(const gchar *path);
+typedef void (*dlr_upnp_task_complete_t)(dlr_task_t *task, GError *error);
 
-rsu_upnp_t *rsu_upnp_new(dleyna_connector_id_t connection,
+dlr_upnp_t *dlr_upnp_new(dleyna_connector_id_t connection,
 			 const dleyna_connector_dispatch_cb_t *dispatch_table,
-			 rsu_upnp_callback_t found_server,
-			 rsu_upnp_callback_t lost_server);
-void rsu_upnp_delete(rsu_upnp_t *upnp);
-GVariant *rsu_upnp_get_server_ids(rsu_upnp_t *upnp);
-GHashTable *rsu_upnp_get_server_udn_map(rsu_upnp_t *upnp);
-void rsu_upnp_set_prop(rsu_upnp_t *upnp, rsu_task_t *task,
-		       rsu_upnp_task_complete_t cb);
-void rsu_upnp_get_prop(rsu_upnp_t *upnp, rsu_task_t *task,
-		       rsu_upnp_task_complete_t cb);
-void rsu_upnp_get_all_props(rsu_upnp_t *upnp, rsu_task_t *task,
-			    rsu_upnp_task_complete_t cb);
-void rsu_upnp_play(rsu_upnp_t *upnp, rsu_task_t *task,
-		   rsu_upnp_task_complete_t cb);
-void rsu_upnp_pause(rsu_upnp_t *upnp, rsu_task_t *task,
-		    rsu_upnp_task_complete_t cb);
-void rsu_upnp_play_pause(rsu_upnp_t *upnp, rsu_task_t *task,
-			 rsu_upnp_task_complete_t cb);
-void rsu_upnp_stop(rsu_upnp_t *upnp, rsu_task_t *task,
-		   rsu_upnp_task_complete_t cb);
-void rsu_upnp_next(rsu_upnp_t *upnp, rsu_task_t *task,
-		   rsu_upnp_task_complete_t cb);
-void rsu_upnp_previous(rsu_upnp_t *upnp, rsu_task_t *task,
-		       rsu_upnp_task_complete_t cb);
-void rsu_upnp_open_uri(rsu_upnp_t *upnp, rsu_task_t *task,
-		       rsu_upnp_task_complete_t cb);
-void rsu_upnp_seek(rsu_upnp_t *upnp, rsu_task_t *task,
-		   rsu_upnp_task_complete_t cb);
-void rsu_upnp_set_position(rsu_upnp_t *upnp, rsu_task_t *task,
-			   rsu_upnp_task_complete_t cb);
-void rsu_upnp_host_uri(rsu_upnp_t *upnp, rsu_task_t *task,
-		       rsu_upnp_task_complete_t cb);
-void rsu_upnp_remove_uri(rsu_upnp_t *upnp, rsu_task_t *task,
-			 rsu_upnp_task_complete_t cb);
-void rsu_upnp_lost_client(rsu_upnp_t *upnp, const gchar *client_name);
+			 dlr_upnp_callback_t found_server,
+			 dlr_upnp_callback_t lost_server);
 
-#endif
+void dlr_upnp_delete(dlr_upnp_t *upnp);
+
+GVariant *dlr_upnp_get_server_ids(dlr_upnp_t *upnp);
+
+GHashTable *dlr_upnp_get_server_udn_map(dlr_upnp_t *upnp);
+
+void dlr_upnp_set_prop(dlr_upnp_t *upnp, dlr_task_t *task,
+		       dlr_upnp_task_complete_t cb);
+
+void dlr_upnp_get_prop(dlr_upnp_t *upnp, dlr_task_t *task,
+		       dlr_upnp_task_complete_t cb);
+
+void dlr_upnp_get_all_props(dlr_upnp_t *upnp, dlr_task_t *task,
+			    dlr_upnp_task_complete_t cb);
+
+void dlr_upnp_play(dlr_upnp_t *upnp, dlr_task_t *task,
+		   dlr_upnp_task_complete_t cb);
+
+void dlr_upnp_pause(dlr_upnp_t *upnp, dlr_task_t *task,
+		    dlr_upnp_task_complete_t cb);
+
+void dlr_upnp_play_pause(dlr_upnp_t *upnp, dlr_task_t *task,
+			 dlr_upnp_task_complete_t cb);
+
+void dlr_upnp_stop(dlr_upnp_t *upnp, dlr_task_t *task,
+		   dlr_upnp_task_complete_t cb);
+
+void dlr_upnp_next(dlr_upnp_t *upnp, dlr_task_t *task,
+		   dlr_upnp_task_complete_t cb);
+
+void dlr_upnp_previous(dlr_upnp_t *upnp, dlr_task_t *task,
+		       dlr_upnp_task_complete_t cb);
+
+void dlr_upnp_open_uri(dlr_upnp_t *upnp, dlr_task_t *task,
+		       dlr_upnp_task_complete_t cb);
+
+void dlr_upnp_seek(dlr_upnp_t *upnp, dlr_task_t *task,
+		   dlr_upnp_task_complete_t cb);
+
+void dlr_upnp_set_position(dlr_upnp_t *upnp, dlr_task_t *task,
+			   dlr_upnp_task_complete_t cb);
+
+void dlr_upnp_host_uri(dlr_upnp_t *upnp, dlr_task_t *task,
+		       dlr_upnp_task_complete_t cb);
+
+void dlr_upnp_remove_uri(dlr_upnp_t *upnp, dlr_task_t *task,
+			 dlr_upnp_task_complete_t cb);
+
+void dlr_upnp_lost_client(dlr_upnp_t *upnp, const gchar *client_name);
+
+#endif /* DLR_UPNP_H__ */

@@ -1,5 +1,5 @@
 /*
- * dleyna
+ * dLeyna
  *
  * Copyright (C) 2012-2013 Intel Corporation. All rights reserved.
  *
@@ -20,20 +20,24 @@
  *
  */
 
-#ifndef RSU_HOST_SERVICE_H__
-#define RSU_HOST_SERVICE_H__
+#ifndef DLR_HOST_SERVICE_H__
+#define DLR_HOST_SERVICE_H__
 
-typedef struct rsu_host_service_t_ rsu_host_service_t;
+typedef struct dlr_host_service_t_ dlr_host_service_t;
 
-void rsu_host_service_new(rsu_host_service_t **host_service);
-gchar *rsu_host_service_add(rsu_host_service_t *host_service,
+void dlr_host_service_new(dlr_host_service_t **host_service);
+
+gchar *dlr_host_service_add(dlr_host_service_t *host_service,
 			    const gchar *device_if, const gchar *client,
 			    const gchar *file, GError **error);
-gboolean rsu_host_service_remove(rsu_host_service_t *host_service,
+
+gboolean dlr_host_service_remove(dlr_host_service_t *host_service,
 				 const gchar *device_if, const gchar *client,
 				 const gchar *file);
-void rsu_host_service_lost_client(rsu_host_service_t *host_service,
-				  const gchar *client);
-void rsu_host_service_delete(rsu_host_service_t *host_service);
 
-#endif
+void dlr_host_service_lost_client(dlr_host_service_t *host_service,
+				  const gchar *client);
+
+void dlr_host_service_delete(dlr_host_service_t *host_service);
+
+#endif /*DLR_HOST_SERVICE_H__ */
