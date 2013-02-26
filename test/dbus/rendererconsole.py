@@ -126,7 +126,7 @@ class Renderer(object):
 class Manager(object):
     """
     High level class for detecting Renderers and doing common operations
-    on RendererServiceUPnP
+    on dLeynaRenderer
     """
 
     def __init__(self):
