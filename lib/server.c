@@ -742,9 +742,11 @@ static void prv_rsu_push_host_method_call(dleyna_connector_id_t conn,
 	}
 
 	if (!strcmp(method, RSU_INTERFACE_HOST_FILE))
-		task = rsu_task_host_uri_new(invocation, object, parameters);
+		task = rsu_task_host_uri_new(invocation, object, sender,
+					     parameters);
 	else if (!strcmp(method, RSU_INTERFACE_REMOVE_FILE))
-		task = rsu_task_remove_uri_new(invocation, object, parameters);
+		task = rsu_task_remove_uri_new(invocation, object, sender,
+					       parameters);
 	else
 		goto on_error;
 

@@ -249,6 +249,7 @@ rsu_task_t *rsu_task_open_uri_new(dleyna_connector_msg_id_t invocation,
 
 rsu_task_t *rsu_task_host_uri_new(dleyna_connector_msg_id_t invocation,
 				  const gchar *path,
+				  const gchar *sender,
 				  GVariant *parameters)
 {
 	rsu_task_t *task;
@@ -258,14 +259,14 @@ rsu_task_t *rsu_task_host_uri_new(dleyna_connector_msg_id_t invocation,
 
 	g_variant_get(parameters, "(s)", &task->ut.host_uri.uri);
 	g_strstrip(task->ut.host_uri.uri);
-	task->ut.host_uri.client = g_strdup(
-			dleyna_task_queue_get_source(task->atom.queue_id));
+	task->ut.host_uri.client = g_strdup(sender);
 
 	return task;
 }
 
 rsu_task_t *rsu_task_remove_uri_new(dleyna_connector_msg_id_t invocation,
 				    const gchar *path,
+				    const gchar *sender,
 				    GVariant *parameters)
 {
 	rsu_task_t *task;
@@ -274,8 +275,7 @@ rsu_task_t *rsu_task_remove_uri_new(dleyna_connector_msg_id_t invocation,
 
 	g_variant_get(parameters, "(s)", &task->ut.host_uri.uri);
 	g_strstrip(task->ut.host_uri.uri);
-	task->ut.host_uri.client = g_strdup(
-			dleyna_task_queue_get_source(task->atom.queue_id));
+	task->ut.host_uri.client = g_strdup(sender);
 
 	return task;
 }

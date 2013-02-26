@@ -135,9 +135,11 @@ rsu_task_t *rsu_task_set_position_new(dleyna_connector_msg_id_t invocation,
 rsu_task_t *rsu_task_open_uri_new(dleyna_connector_msg_id_t invocation,
 				  const gchar *path, GVariant *parameters);
 rsu_task_t *rsu_task_host_uri_new(dleyna_connector_msg_id_t invocation,
-				  const gchar *path, GVariant *parameters);
+				  const gchar *path, const gchar *sender,
+				  GVariant *parameters);
 rsu_task_t *rsu_task_remove_uri_new(dleyna_connector_msg_id_t invocation,
-				    const gchar *path, GVariant *parameters);
+				    const gchar *path, const gchar *sender,
+				    GVariant *parameters);
 void rsu_task_complete(rsu_task_t *task);
 void rsu_task_fail(rsu_task_t *task, GError *error);
 void rsu_task_delete(rsu_task_t *task);
