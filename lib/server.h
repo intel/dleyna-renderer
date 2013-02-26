@@ -1,5 +1,5 @@
 /*
- * dleyna
+ * dLeyna
  *
  * Copyright (C) 2012-2013 Intel Corporation. All rights reserved.
  *
@@ -20,11 +20,11 @@
  *
  */
 
-#ifndef SERVER_H__
-#define SERVER_H__
+#ifndef DLR_SERVER_H__
+#define DLR_SERVER_H__
 
 #include <libdleyna/core/connector.h>
 
 const dleyna_connector_t *dlr_server_get_connector(void);
 
-#endif /* SERVER_H__ */
+#endif /* DLR_SERVER_H__ */

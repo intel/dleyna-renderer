@@ -1,5 +1,5 @@
 /*
- * dleyna
+ * dLeyna
  *
  * Copyright (C) 2012-2013 Intel Corporation. All rights reserved.
  *
@@ -20,8 +20,8 @@
  *
  */
 
-#ifndef RSU_ASYNC_H__
-#define RSU_ASYNC_H__
+#ifndef DLR_ASYNC_H__
+#define DLR_ASYNC_H__
 
 #include <libgupnp/gupnp-control-point.h>
 
@@ -29,10 +29,10 @@
 #include "task.h"
 #include "upnp.h"
 
-typedef struct rsu_async_task_t_ rsu_async_task_t;
-struct rsu_async_task_t_ {
-	rsu_task_t task; /* pseudo inheritance - MUST be first field */
-	rsu_upnp_task_complete_t cb;
+typedef struct dlr_async_task_t_ dlr_async_task_t;
+struct dlr_async_task_t_ {
+	dlr_task_t task; /* pseudo inheritance - MUST be first field */
+	dlr_upnp_task_complete_t cb;
 	GError *error;
 	GUPnPServiceProxyAction *action;
 	GUPnPServiceProxy *proxy;
@@ -40,12 +40,17 @@ struct rsu_async_task_t_ {
 	gulong cancel_id;
 	gpointer private;
 	GDestroyNotify free_private;
-	rsu_device_t *device;
+	dlr_device_t *device;
 };
 
-gboolean rsu_async_task_complete(gpointer user_data);
-void rsu_async_task_cancelled(GCancellable *cancellable, gpointer user_data);
-void rsu_async_task_delete(rsu_async_task_t *task);
-void rsu_async_task_lost_object(gpointer user_data);
-void rsu_async_task_cancel(rsu_async_task_t *task);
-#endif
+gboolean dlr_async_task_complete(gpointer user_data);
+
+void dlr_async_task_cancelled(GCancellable *cancellable, gpointer user_data);
+
+void dlr_async_task_delete(dlr_async_task_t *task);
+
+void dlr_async_task_lost_object(gpointer user_data);
+
+void dlr_async_task_cancel(dlr_async_task_t *task);
+
+#endif /* DLR_ASYNC_H__ */

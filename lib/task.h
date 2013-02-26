@@ -1,5 +1,5 @@
 /*
- * dleyna
+ * dLeyna
  *
  * Copyright (C) 2012-2013 Intel Corporation. All rights reserved.
  *
@@ -20,8 +20,8 @@
  *
  */
 
-#ifndef RSU_TASK_H__
-#define RSU_TASK_H__
+#ifndef DLR_TASK_H__
+#define DLR_TASK_H__
 
 #include <gio/gio.h>
 #include <glib.h>
@@ -29,120 +29,141 @@
 #include <libdleyna/core/connector.h>
 #include <libdleyna/core/task-atom.h>
 
-enum rsu_task_type_t_ {
-	RSU_TASK_GET_VERSION,
-	RSU_TASK_GET_SERVERS,
-	RSU_TASK_RAISE,
-	RSU_TASK_QUIT,
-	RSU_TASK_SET_PROP,
-	RSU_TASK_GET_ALL_PROPS,
-	RSU_TASK_GET_PROP,
-	RSU_TASK_PAUSE,
-	RSU_TASK_PLAY,
-	RSU_TASK_PLAY_PAUSE,
-	RSU_TASK_STOP,
-	RSU_TASK_NEXT,
-	RSU_TASK_PREVIOUS,
-	RSU_TASK_OPEN_URI,
-	RSU_TASK_SEEK,
-	RSU_TASK_SET_POSITION,
-	RSU_TASK_HOST_URI,
-	RSU_TASK_REMOVE_URI
+enum dlr_task_type_t_ {
+	DLR_TASK_GET_VERSION,
+	DLR_TASK_GET_SERVERS,
+	DLR_TASK_RAISE,
+	DLR_TASK_QUIT,
+	DLR_TASK_SET_PROP,
+	DLR_TASK_GET_ALL_PROPS,
+	DLR_TASK_GET_PROP,
+	DLR_TASK_PAUSE,
+	DLR_TASK_PLAY,
+	DLR_TASK_PLAY_PAUSE,
+	DLR_TASK_STOP,
+	DLR_TASK_NEXT,
+	DLR_TASK_PREVIOUS,
+	DLR_TASK_OPEN_URI,
+	DLR_TASK_SEEK,
+	DLR_TASK_SET_POSITION,
+	DLR_TASK_HOST_URI,
+	DLR_TASK_REMOVE_URI
 };
-typedef enum rsu_task_type_t_ rsu_task_type_t;
+typedef enum dlr_task_type_t_ dlr_task_type_t;
 
-typedef void (*rsu_cancel_task_t)(void *handle);
+typedef void (*dlr_cancel_task_t)(void *handle);
 
-typedef struct rsu_task_get_props_t_ rsu_task_get_props_t;
-struct rsu_task_get_props_t_ {
+typedef struct dlr_task_get_props_t_ dlr_task_get_props_t;
+struct dlr_task_get_props_t_ {
 	gchar *interface_name;
 };
 
-typedef struct rsu_task_get_prop_t_ rsu_task_get_prop_t;
-struct rsu_task_get_prop_t_ {
+typedef struct dlr_task_get_prop_t_ dlr_task_get_prop_t;
+struct dlr_task_get_prop_t_ {
 	gchar *prop_name;
 	gchar *interface_name;
 };
 
-typedef struct rsu_task_set_prop_t_ rsu_task_set_prop_t;
-struct rsu_task_set_prop_t_ {
+typedef struct dlr_task_set_prop_t_ dlr_task_set_prop_t;
+struct dlr_task_set_prop_t_ {
 	gchar *prop_name;
 	gchar *interface_name;
 	GVariant *params;
 };
 
-typedef struct rsu_task_open_uri_t_ rsu_task_open_uri_t;
-struct rsu_task_open_uri_t_ {
+typedef struct dlr_task_open_uri_t_ dlr_task_open_uri_t;
+struct dlr_task_open_uri_t_ {
 	gchar *uri;
 };
 
-typedef struct rsu_task_seek_t_ rsu_task_seek_t;
-struct rsu_task_seek_t_ {
+typedef struct dlr_task_seek_t_ dlr_task_seek_t;
+struct dlr_task_seek_t_ {
 	gint64 position;
 };
 
-typedef struct rsu_task_host_uri_t_ rsu_task_host_uri_t;
-struct rsu_task_host_uri_t_ {
+typedef struct dlr_task_host_uri_t_ dlr_task_host_uri_t;
+struct dlr_task_host_uri_t_ {
 	gchar *uri;
 	gchar *client;
 };
 
-typedef struct rsu_task_t_ rsu_task_t;
-struct rsu_task_t_ {
+typedef struct dlr_task_t_ dlr_task_t;
+struct dlr_task_t_ {
 	dleyna_task_atom_t atom; /* pseudo inheritance - MUST be first field */
-	rsu_task_type_t type;
+	dlr_task_type_t type;
 	gchar *path;
 	const gchar *result_format;
 	GVariant *result;
 	dleyna_connector_msg_id_t invocation;
 	gboolean synchronous;
 	union {
-		rsu_task_get_props_t get_props;
-		rsu_task_get_prop_t get_prop;
-		rsu_task_set_prop_t set_prop;
-		rsu_task_open_uri_t open_uri;
-		rsu_task_host_uri_t host_uri;
-		rsu_task_seek_t seek;
+		dlr_task_get_props_t get_props;
+		dlr_task_get_prop_t get_prop;
+		dlr_task_set_prop_t set_prop;
+		dlr_task_open_uri_t open_uri;
+		dlr_task_host_uri_t host_uri;
+		dlr_task_seek_t seek;
 	} ut;
 };
 
-rsu_task_t *rsu_task_get_version_new(dleyna_connector_msg_id_t invocation);
-rsu_task_t *rsu_task_get_servers_new(dleyna_connector_msg_id_t invocation);
-rsu_task_t *rsu_task_raise_new(dleyna_connector_msg_id_t invocation);
-rsu_task_t *rsu_task_quit_new(dleyna_connector_msg_id_t invocation);
-rsu_task_t *rsu_task_set_prop_new(dleyna_connector_msg_id_t invocation,
+dlr_task_t *dlr_task_get_version_new(dleyna_connector_msg_id_t invocation);
+
+dlr_task_t *dlr_task_get_servers_new(dleyna_connector_msg_id_t invocation);
+
+dlr_task_t *dlr_task_raise_new(dleyna_connector_msg_id_t invocation);
+
+dlr_task_t *dlr_task_quit_new(dleyna_connector_msg_id_t invocation);
+
+dlr_task_t *dlr_task_set_prop_new(dleyna_connector_msg_id_t invocation,
 				  const gchar *path, GVariant *parameters);
-rsu_task_t *rsu_task_get_prop_new(dleyna_connector_msg_id_t invocation,
+
+dlr_task_t *dlr_task_get_prop_new(dleyna_connector_msg_id_t invocation,
 				  const gchar *path, GVariant *parameters);
-rsu_task_t *rsu_task_get_props_new(dleyna_connector_msg_id_t invocation,
+
+dlr_task_t *dlr_task_get_props_new(dleyna_connector_msg_id_t invocation,
 				   const gchar *path, GVariant *parameters);
-rsu_task_t *rsu_task_play_new(dleyna_connector_msg_id_t invocation,
+
+dlr_task_t *dlr_task_play_new(dleyna_connector_msg_id_t invocation,
 			      const gchar *path);
-rsu_task_t *rsu_task_pause_new(dleyna_connector_msg_id_t invocation,
+
+dlr_task_t *dlr_task_pause_new(dleyna_connector_msg_id_t invocation,
 			      const gchar *path);
-rsu_task_t *rsu_task_play_pause_new(dleyna_connector_msg_id_t invocation,
+
+dlr_task_t *dlr_task_play_pause_new(dleyna_connector_msg_id_t invocation,
 				    const gchar *path);
-rsu_task_t *rsu_task_stop_new(dleyna_connector_msg_id_t invocation,
+
+dlr_task_t *dlr_task_stop_new(dleyna_connector_msg_id_t invocation,
 			      const gchar *path);
-rsu_task_t *rsu_task_next_new(dleyna_connector_msg_id_t invocation,
+
+dlr_task_t *dlr_task_next_new(dleyna_connector_msg_id_t invocation,
 			      const gchar *path);
-rsu_task_t *rsu_task_previous_new(dleyna_connector_msg_id_t invocation,
+
+dlr_task_t *dlr_task_previous_new(dleyna_connector_msg_id_t invocation,
 				  const gchar *path);
-rsu_task_t *rsu_task_seek_new(dleyna_connector_msg_id_t invocation,
+
+dlr_task_t *dlr_task_seek_new(dleyna_connector_msg_id_t invocation,
 			      const gchar *path, GVariant *parameters);
-rsu_task_t *rsu_task_set_position_new(dleyna_connector_msg_id_t invocation,
+
+dlr_task_t *dlr_task_set_position_new(dleyna_connector_msg_id_t invocation,
 				      const gchar *path, GVariant *parameters);
-rsu_task_t *rsu_task_open_uri_new(dleyna_connector_msg_id_t invocation,
+
+dlr_task_t *dlr_task_open_uri_new(dleyna_connector_msg_id_t invocation,
 				  const gchar *path, GVariant *parameters);
-rsu_task_t *rsu_task_host_uri_new(dleyna_connector_msg_id_t invocation,
+
+dlr_task_t *dlr_task_host_uri_new(dleyna_connector_msg_id_t invocation,
 				  const gchar *path, const gchar *sender,
 				  GVariant *parameters);
-rsu_task_t *rsu_task_remove_uri_new(dleyna_connector_msg_id_t invocation,
+
+dlr_task_t *dlr_task_remove_uri_new(dleyna_connector_msg_id_t invocation,
 				    const gchar *path, const gchar *sender,
 				    GVariant *parameters);
-void rsu_task_complete(rsu_task_t *task);
-void rsu_task_fail(rsu_task_t *task, GError *error);
-void rsu_task_delete(rsu_task_t *task);
-void rsu_task_cancel(rsu_task_t *task);
+
+void dlr_task_complete(dlr_task_t *task);
+
+void dlr_task_fail(dlr_task_t *task, GError *error);
+
+void dlr_task_delete(dlr_task_t *task);
+
+void dlr_task_cancel(dlr_task_t *task);
 
 #endif

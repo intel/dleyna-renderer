@@ -1,5 +1,5 @@
 /*
- * dleyna
+ * dLeyna
  *
  * Copyright (C) 2012-2013 Intel Corporation. All rights reserved.
  *
@@ -26,11 +26,11 @@
 #include "async.h"
 #include "server.h"
 
-rsu_task_t *rsu_task_get_version_new(dleyna_connector_msg_id_t invocation)
+dlr_task_t *dlr_task_get_version_new(dleyna_connector_msg_id_t invocation)
 {
-	rsu_task_t *task = g_new0(rsu_task_t, 1);
+	dlr_task_t *task = g_new0(dlr_task_t, 1);
 
-	task->type = RSU_TASK_GET_VERSION;
+	task->type = DLR_TASK_GET_VERSION;
 	task->invocation = invocation;
 	task->result_format = "(@s)";
 	task->result = g_variant_ref_sink(g_variant_new_string(VERSION));
@@ -39,11 +39,11 @@ rsu_task_t *rsu_task_get_version_new(dleyna_connector_msg_id_t invocation)
 	return task;
 }
 
-rsu_task_t *rsu_task_get_servers_new(dleyna_connector_msg_id_t invocation)
+dlr_task_t *dlr_task_get_servers_new(dleyna_connector_msg_id_t invocation)
 {
-	rsu_task_t *task = g_new0(rsu_task_t, 1);
+	dlr_task_t *task = g_new0(dlr_task_t, 1);
 
-	task->type = RSU_TASK_GET_SERVERS;
+	task->type = DLR_TASK_GET_SERVERS;
 	task->invocation = invocation;
 	task->result_format = "(@as)";
 	task->synchronous = TRUE;
@@ -51,51 +51,51 @@ rsu_task_t *rsu_task_get_servers_new(dleyna_connector_msg_id_t invocation)
 	return task;
 }
 
-rsu_task_t *rsu_task_raise_new(dleyna_connector_msg_id_t invocation)
+dlr_task_t *dlr_task_raise_new(dleyna_connector_msg_id_t invocation)
 {
-	rsu_task_t *task = g_new0(rsu_task_t, 1);
+	dlr_task_t *task = g_new0(dlr_task_t, 1);
 
-	task->type = RSU_TASK_RAISE;
+	task->type = DLR_TASK_RAISE;
 	task->invocation = invocation;
 	task->synchronous = TRUE;
 
 	return task;
 }
 
-rsu_task_t *rsu_task_quit_new(dleyna_connector_msg_id_t invocation)
+dlr_task_t *dlr_task_quit_new(dleyna_connector_msg_id_t invocation)
 {
-	rsu_task_t *task = g_new0(rsu_task_t, 1);
+	dlr_task_t *task = g_new0(dlr_task_t, 1);
 
-	task->type = RSU_TASK_QUIT;
+	task->type = DLR_TASK_QUIT;
 	task->invocation = invocation;
 	task->synchronous = TRUE;
 
 	return task;
 }
 
-static void prv_rsu_task_delete(rsu_task_t *task)
+static void prv_dlr_task_delete(dlr_task_t *task)
 {
 	if (!task->synchronous)
-		rsu_async_task_delete((rsu_async_task_t *)task);
+		dlr_async_task_delete((dlr_async_task_t *)task);
 
 	switch (task->type) {
-	case RSU_TASK_GET_ALL_PROPS:
+	case DLR_TASK_GET_ALL_PROPS:
 		g_free(task->ut.get_props.interface_name);
 		break;
-	case RSU_TASK_GET_PROP:
+	case DLR_TASK_GET_PROP:
 		g_free(task->ut.get_prop.interface_name);
 		g_free(task->ut.get_prop.prop_name);
 		break;
-	case RSU_TASK_SET_PROP:
+	case DLR_TASK_SET_PROP:
 		g_free(task->ut.set_prop.interface_name);
 		g_free(task->ut.set_prop.prop_name);
 		g_variant_unref(task->ut.set_prop.params);
 		break;
-	case RSU_TASK_OPEN_URI:
+	case DLR_TASK_OPEN_URI:
 		g_free(task->ut.open_uri.uri);
 		break;
-	case RSU_TASK_HOST_URI:
-	case RSU_TASK_REMOVE_URI:
+	case DLR_TASK_HOST_URI:
+	case DLR_TASK_REMOVE_URI:
 		g_free(task->ut.host_uri.uri);
 		g_free(task->ut.host_uri.client);
 		break;
@@ -110,12 +110,12 @@ static void prv_rsu_task_delete(rsu_task_t *task)
 	g_free(task);
 }
 
-static rsu_task_t *prv_device_task_new(rsu_task_type_t type,
+static dlr_task_t *prv_device_task_new(dlr_task_type_t type,
 				       dleyna_connector_msg_id_t invocation,
 				       const gchar *path,
 				       const gchar *result_format)
 {
-	rsu_task_t *task = (rsu_task_t *)g_new0(rsu_async_task_t, 1);
+	dlr_task_t *task = (dlr_task_t *)g_new0(dlr_async_task_t, 1);
 
 	task->type = type;
 	task->invocation = invocation;
@@ -127,12 +127,12 @@ static rsu_task_t *prv_device_task_new(rsu_task_type_t type,
 	return task;
 }
 
-rsu_task_t *rsu_task_get_prop_new(dleyna_connector_msg_id_t invocation,
+dlr_task_t *dlr_task_get_prop_new(dleyna_connector_msg_id_t invocation,
 				  const gchar *path, GVariant *parameters)
 {
-	rsu_task_t *task;
+	dlr_task_t *task;
 
-	task = prv_device_task_new(RSU_TASK_GET_PROP, invocation, path, "(v)");
+	task = prv_device_task_new(DLR_TASK_GET_PROP, invocation, path, "(v)");
 
 	g_variant_get(parameters, "(ss)", &task->ut.get_prop.interface_name,
 		      &task->ut.get_prop.prop_name);
@@ -143,12 +143,12 @@ rsu_task_t *rsu_task_get_prop_new(dleyna_connector_msg_id_t invocation,
 	return task;
 }
 
-rsu_task_t *rsu_task_get_props_new(dleyna_connector_msg_id_t invocation,
+dlr_task_t *dlr_task_get_props_new(dleyna_connector_msg_id_t invocation,
 				   const gchar *path, GVariant *parameters)
 {
-	rsu_task_t *task;
+	dlr_task_t *task;
 
-	task = prv_device_task_new(RSU_TASK_GET_ALL_PROPS, invocation, path,
+	task = prv_device_task_new(DLR_TASK_GET_ALL_PROPS, invocation, path,
 				   "(@a{sv})");
 
 	g_variant_get(parameters, "(s)", &task->ut.get_props.interface_name);
@@ -157,12 +157,12 @@ rsu_task_t *rsu_task_get_props_new(dleyna_connector_msg_id_t invocation,
 	return task;
 }
 
-rsu_task_t *rsu_task_set_prop_new(dleyna_connector_msg_id_t invocation,
+dlr_task_t *dlr_task_set_prop_new(dleyna_connector_msg_id_t invocation,
 				  const gchar *path, GVariant *parameters)
 {
-	rsu_task_t *task;
+	dlr_task_t *task;
 
-	task = prv_device_task_new(RSU_TASK_SET_PROP, invocation, path, NULL);
+	task = prv_device_task_new(DLR_TASK_SET_PROP, invocation, path, NULL);
 
 	g_variant_get(parameters, "(ssv)", &task->ut.set_prop.interface_name,
 		      &task->ut.set_prop.prop_name, &task->ut.set_prop.params);
@@ -173,46 +173,46 @@ rsu_task_t *rsu_task_set_prop_new(dleyna_connector_msg_id_t invocation,
 	return task;
 }
 
-rsu_task_t *rsu_task_play_new(dleyna_connector_msg_id_t invocation,
+dlr_task_t *dlr_task_play_new(dleyna_connector_msg_id_t invocation,
 			      const gchar *path)
 {
-	return prv_device_task_new(RSU_TASK_PLAY, invocation, path, NULL);
+	return prv_device_task_new(DLR_TASK_PLAY, invocation, path, NULL);
 }
 
-rsu_task_t *rsu_task_pause_new(dleyna_connector_msg_id_t invocation,
+dlr_task_t *dlr_task_pause_new(dleyna_connector_msg_id_t invocation,
 			       const gchar *path)
 {
-	return prv_device_task_new(RSU_TASK_PAUSE, invocation, path, NULL);
+	return prv_device_task_new(DLR_TASK_PAUSE, invocation, path, NULL);
 }
 
-rsu_task_t *rsu_task_play_pause_new(dleyna_connector_msg_id_t invocation,
+dlr_task_t *dlr_task_play_pause_new(dleyna_connector_msg_id_t invocation,
 				    const gchar *path)
 {
-	return prv_device_task_new(RSU_TASK_PLAY_PAUSE, invocation, path, NULL);
+	return prv_device_task_new(DLR_TASK_PLAY_PAUSE, invocation, path, NULL);
 }
 
-rsu_task_t *rsu_task_stop_new(dleyna_connector_msg_id_t invocation,
+dlr_task_t *dlr_task_stop_new(dleyna_connector_msg_id_t invocation,
 			      const gchar *path)
 {
-	return prv_device_task_new(RSU_TASK_STOP, invocation, path, NULL);
+	return prv_device_task_new(DLR_TASK_STOP, invocation, path, NULL);
 }
 
-rsu_task_t *rsu_task_next_new(dleyna_connector_msg_id_t invocation,
+dlr_task_t *dlr_task_next_new(dleyna_connector_msg_id_t invocation,
 			      const gchar *path)
 {
-	return prv_device_task_new(RSU_TASK_NEXT, invocation, path, NULL);
+	return prv_device_task_new(DLR_TASK_NEXT, invocation, path, NULL);
 }
 
-rsu_task_t *rsu_task_previous_new(dleyna_connector_msg_id_t invocation,
+dlr_task_t *dlr_task_previous_new(dleyna_connector_msg_id_t invocation,
 				  const gchar *path)
 {
-	return prv_device_task_new(RSU_TASK_PREVIOUS, invocation, path, NULL);
+	return prv_device_task_new(DLR_TASK_PREVIOUS, invocation, path, NULL);
 }
 
-rsu_task_t *rsu_task_seek_new(dleyna_connector_msg_id_t invocation,
+dlr_task_t *dlr_task_seek_new(dleyna_connector_msg_id_t invocation,
 			      const gchar *path, GVariant *parameters)
 {
-	rsu_task_t *task = prv_device_task_new(RSU_TASK_SEEK, invocation,
+	dlr_task_t *task = prv_device_task_new(DLR_TASK_SEEK, invocation,
 					       path, NULL);
 
 	g_variant_get(parameters, "(x)", &task->ut.seek.position);
@@ -220,12 +220,12 @@ rsu_task_t *rsu_task_seek_new(dleyna_connector_msg_id_t invocation,
 	return task;
 }
 
-rsu_task_t *rsu_task_set_position_new(dleyna_connector_msg_id_t invocation,
+dlr_task_t *dlr_task_set_position_new(dleyna_connector_msg_id_t invocation,
 				      const gchar *path, GVariant *parameters)
 {
 	gchar *track_id;
 
-	rsu_task_t *task = prv_device_task_new(RSU_TASK_SET_POSITION,
+	dlr_task_t *task = prv_device_task_new(DLR_TASK_SET_POSITION,
 					       invocation, path, NULL);
 
 	g_variant_get(parameters, "(&ox)", &track_id, &task->ut.seek.position);
@@ -233,12 +233,12 @@ rsu_task_t *rsu_task_set_position_new(dleyna_connector_msg_id_t invocation,
 	return task;
 }
 
-rsu_task_t *rsu_task_open_uri_new(dleyna_connector_msg_id_t invocation,
+dlr_task_t *dlr_task_open_uri_new(dleyna_connector_msg_id_t invocation,
 				  const gchar *path, GVariant *parameters)
 {
-	rsu_task_t *task;
+	dlr_task_t *task;
 
-	task = prv_device_task_new(RSU_TASK_OPEN_URI, invocation, path,
+	task = prv_device_task_new(DLR_TASK_OPEN_URI, invocation, path,
 				   NULL);
 
 	g_variant_get(parameters, "(s)", &task->ut.open_uri.uri);
@@ -247,14 +247,14 @@ rsu_task_t *rsu_task_open_uri_new(dleyna_connector_msg_id_t invocation,
 	return task;
 }
 
-rsu_task_t *rsu_task_host_uri_new(dleyna_connector_msg_id_t invocation,
+dlr_task_t *dlr_task_host_uri_new(dleyna_connector_msg_id_t invocation,
 				  const gchar *path,
 				  const gchar *sender,
 				  GVariant *parameters)
 {
-	rsu_task_t *task;
+	dlr_task_t *task;
 
-	task = prv_device_task_new(RSU_TASK_HOST_URI, invocation, path,
+	task = prv_device_task_new(DLR_TASK_HOST_URI, invocation, path,
 				   "(@s)");
 
 	g_variant_get(parameters, "(s)", &task->ut.host_uri.uri);
@@ -264,14 +264,14 @@ rsu_task_t *rsu_task_host_uri_new(dleyna_connector_msg_id_t invocation,
 	return task;
 }
 
-rsu_task_t *rsu_task_remove_uri_new(dleyna_connector_msg_id_t invocation,
+dlr_task_t *dlr_task_remove_uri_new(dleyna_connector_msg_id_t invocation,
 				    const gchar *path,
 				    const gchar *sender,
 				    GVariant *parameters)
 {
-	rsu_task_t *task;
+	dlr_task_t *task;
 
-	task = prv_device_task_new(RSU_TASK_REMOVE_URI, invocation, path, NULL);
+	task = prv_device_task_new(DLR_TASK_REMOVE_URI, invocation, path, NULL);
 
 	g_variant_get(parameters, "(s)", &task->ut.host_uri.uri);
 	g_strstrip(task->ut.host_uri.uri);
@@ -280,7 +280,7 @@ rsu_task_t *rsu_task_remove_uri_new(dleyna_connector_msg_id_t invocation,
 	return task;
 }
 
-void rsu_task_complete(rsu_task_t *task)
+void dlr_task_complete(dlr_task_t *task)
 {
 	if (!task)
 		goto finished;
@@ -304,7 +304,7 @@ finished:
 	return;
 }
 
-void rsu_task_fail(rsu_task_t *task, GError *error)
+void dlr_task_fail(dlr_task_t *task, GError *error)
 {
 	if (!task)
 		goto finished;
@@ -320,7 +320,7 @@ finished:
 	return;
 }
 
-void rsu_task_cancel(rsu_task_t *task)
+void dlr_task_cancel(dlr_task_t *task)
 {
 	GError *error;
 
@@ -337,14 +337,14 @@ void rsu_task_cancel(rsu_task_t *task)
 	}
 
 	if (!task->synchronous)
-		rsu_async_task_cancel((rsu_async_task_t *)task);
+		dlr_async_task_cancel((dlr_async_task_t *)task);
 
 finished:
 
 	return;
 }
 
-void rsu_task_delete(rsu_task_t *task)
+void dlr_task_delete(dlr_task_t *task)
 {
 	GError *error;
 
@@ -359,7 +359,7 @@ void rsu_task_delete(rsu_task_t *task)
 		g_error_free(error);
 	}
 
-	prv_rsu_task_delete(task);
+	prv_dlr_task_delete(task);
 
 finished:
 

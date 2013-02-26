@@ -1,5 +1,5 @@
 /*
- * dleyna
+ * dLeyna
  *
  * Copyright (C) 2012-2013 Intel Corporation. All rights reserved.
  *
@@ -25,7 +25,7 @@
 
 #include "async.h"
 
-void rsu_async_task_delete(rsu_async_task_t *task)
+void dlr_async_task_delete(dlr_async_task_t *task)
 {
 	if (task->free_private)
 		task->free_private(task->private);
@@ -33,9 +33,9 @@ void rsu_async_task_delete(rsu_async_task_t *task)
 		g_object_unref(task->cancellable);
 }
 
-gboolean rsu_async_task_complete(gpointer user_data)
+gboolean dlr_async_task_complete(gpointer user_data)
 {
-	rsu_async_task_t *cb_data = user_data;
+	dlr_async_task_t *cb_data = user_data;
 
 	DLEYNA_LOG_DEBUG("Enter. Error %p", (void *)cb_data->error);
 	DLEYNA_LOG_DEBUG_NL();
@@ -51,9 +51,9 @@ gboolean rsu_async_task_complete(gpointer user_data)
 	return FALSE;
 }
 
-void rsu_async_task_cancelled(GCancellable *cancellable, gpointer user_data)
+void dlr_async_task_cancelled(GCancellable *cancellable, gpointer user_data)
 {
-	rsu_async_task_t *cb_data = user_data;
+	dlr_async_task_t *cb_data = user_data;
 
 	cb_data->device->current_task = NULL;
 	gupnp_service_proxy_cancel_action(cb_data->proxy, cb_data->action);
@@ -61,22 +61,22 @@ void rsu_async_task_cancelled(GCancellable *cancellable, gpointer user_data)
 		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
 					     DLEYNA_ERROR_CANCELLED,
 					     "Operation cancelled.");
-	(void) g_idle_add(rsu_async_task_complete, cb_data);
+	(void) g_idle_add(dlr_async_task_complete, cb_data);
 }
 
-void rsu_async_task_lost_object(gpointer user_data)
+void dlr_async_task_lost_object(gpointer user_data)
 {
-	rsu_async_task_t *cb_data = user_data;
+	dlr_async_task_t *cb_data = user_data;
 
 	if (!cb_data->error)
 		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
 					     DLEYNA_ERROR_LOST_OBJECT,
 					     "Renderer died before command "
 					     "could be completed.");
-	(void) g_idle_add(rsu_async_task_complete, cb_data);
+	(void) g_idle_add(dlr_async_task_complete, cb_data);
 }
 
-void rsu_async_task_cancel(rsu_async_task_t *task)
+void dlr_async_task_cancel(dlr_async_task_t *task)
 {
 	if (task->cancellable)
 		g_cancellable_cancel(task->cancellable);

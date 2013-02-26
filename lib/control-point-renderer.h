@@ -20,11 +20,11 @@
  *
  */
 
-#ifndef CONTROL_POINT_RENDERER_H__
-#define CONTROL_POINT_RENDERER_H__
+#ifndef DLEYNA_CONTROL_POINT_RENDERER_H__
+#define DLEYNA_CONTROL_POINT_RENDERER_H__
 
 #include <libdleyna/core/control-point.h>
 
 const dleyna_control_point_t *dleyna_control_point_get_renderer(void);
 
-#endif /* CONTROL_POINT_RENDERER_H__ */
+#endif /* DLEYNA_CONTROL_POINT_RENDERER_H__ */
