@@ -311,32 +311,38 @@ static void prv_soup_server_cb(SoupServer *server, SoupMessage *msg,
 						    hf->dlna_header);
 	}
 
-	if (msg->method == SOUP_METHOD_GET) {
-		if (hf->mapped_file) {
-			g_mapped_file_ref(hf->mapped_file);
-			++hf->mapped_count;
-		} else {
-			hf->mapped_file = g_mapped_file_new(file_name,
-							    FALSE,
-							    NULL);
+	if (hf->mapped_file) {
+		g_mapped_file_ref(hf->mapped_file);
+		++hf->mapped_count;
+	} else {
+		hf->mapped_file = g_mapped_file_new(file_name,
+						    FALSE,
+						    NULL);
 
-			if (!hf->mapped_file) {
-				soup_message_set_status(msg,
-							SOUP_STATUS_NOT_FOUND);
-				goto on_error;
-			}
-
-			hf->mapped_count = 1;
+		if (!hf->mapped_file) {
+			soup_message_set_status(msg,
+						SOUP_STATUS_NOT_FOUND);
+			goto on_error;
 		}
 
+		hf->mapped_count = 1;
+	}
+
+	if (msg->method == SOUP_METHOD_GET) {
 		g_signal_connect(msg, "finished",
 				 G_CALLBACK(prv_soup_message_finished_cb), hf);
 
-
-		soup_message_set_response(
-				msg, hf->mime_type, SOUP_MEMORY_STATIC,
+		soup_message_set_response(msg, hf->mime_type,
+				SOUP_MEMORY_STATIC,
 				g_mapped_file_get_contents(hf->mapped_file),
 				g_mapped_file_get_length(hf->mapped_file));
+	} else {
+		soup_message_headers_set_content_type(msg->response_headers,
+						      hf->mime_type, NULL);
+
+		soup_message_headers_set_content_length(
+			msg->response_headers,
+			g_mapped_file_get_length(hf->mapped_file));
 	}
 
 	soup_message_set_status(msg, SOUP_STATUS_OK);
