@@ -87,6 +87,8 @@ gboolean dlr_device_new(dleyna_connector_id_t connection,
 
 void dlr_device_delete(void *device);
 
+void dlr_device_unsubscribe(void *device);
+
 void dlr_device_append_new_context(dlr_device_t *device,
 				   const gchar *ip_address,
 				   GUPnPDeviceProxy *proxy);
