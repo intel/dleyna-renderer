@@ -40,8 +40,6 @@ gboolean dlr_async_task_complete(gpointer user_data)
 	DLEYNA_LOG_DEBUG("Enter. Error %p", (void *)cb_data->error);
 	DLEYNA_LOG_DEBUG_NL();
 
-	cb_data->device->current_task = NULL;
-
 	if (cb_data->proxy != NULL)
 		g_object_remove_weak_pointer((G_OBJECT(cb_data->proxy)),
 					     (gpointer *)&cb_data->proxy);
@@ -55,24 +53,11 @@ void dlr_async_task_cancelled(GCancellable *cancellable, gpointer user_data)
 {
 	dlr_async_task_t *cb_data = user_data;
 
-	cb_data->device->current_task = NULL;
 	gupnp_service_proxy_cancel_action(cb_data->proxy, cb_data->action);
 	if (!cb_data->error)
 		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
 					     DLEYNA_ERROR_CANCELLED,
 					     "Operation cancelled.");
-	(void) g_idle_add(dlr_async_task_complete, cb_data);
-}
-
-void dlr_async_task_lost_object(gpointer user_data)
-{
-	dlr_async_task_t *cb_data = user_data;
-
-	if (!cb_data->error)
-		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
-					     DLEYNA_ERROR_LOST_OBJECT,
-					     "Renderer died before command "
-					     "could be completed.");
 	(void) g_idle_add(dlr_async_task_complete, cb_data);
 }
 

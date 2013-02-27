@@ -34,12 +34,20 @@
 #include "device.h"
 #include "prop-defs.h"
 #include "server.h"
+#include "service-task.h"
 
 typedef void (*dlr_device_local_cb_t)(dlr_async_task_t *cb_data);
 
 typedef struct dlr_device_data_t_ dlr_device_data_t;
 struct dlr_device_data_t_ {
 	dlr_device_local_cb_t local_cb;
+};
+
+/* Private structure used in chain task */
+typedef struct prv_new_device_ct_t_ prv_new_device_ct_t;
+struct prv_new_device_ct_t_ {
+	dlr_device_t *dev;
+	const dleyna_connector_dispatch_cb_t *dispatch_table;
 };
 
 static void prv_last_change_cb(GUPnPServiceProxy *proxy,
@@ -304,16 +312,20 @@ on_found:
 	return context;
 }
 
-void dlr_device_append_new_context(dlr_device_t *device,
-				   const gchar *ip_address,
-				   GUPnPDeviceProxy *proxy)
+static void prv_device_append_new_context(dlr_device_t *device,
+					  const gchar *ip_address,
+					  GUPnPDeviceProxy *proxy)
 {
 	dlr_device_context_t *new_context;
-	dlr_device_context_t *subscribed_context;
-	dlr_device_context_t *preferred_context;
 
 	prv_context_new(ip_address, proxy, device, &new_context);
 	g_ptr_array_add(device->contexts, new_context);
+}
+
+static void prv_device_subscribe_context(dlr_device_t *device)
+{
+	dlr_device_context_t *subscribed_context;
+	dlr_device_context_t *preferred_context;
 
 	subscribed_context = prv_device_get_subscribed_context(device);
 	preferred_context = dlr_device_get_context(device);
@@ -321,15 +333,21 @@ void dlr_device_append_new_context(dlr_device_t *device,
 	if (subscribed_context != preferred_context) {
 		if (subscribed_context) {
 			DLEYNA_LOG_DEBUG(
-				"Subscription switch from <%s> to <%s>",
-				subscribed_context->ip_address,
-				preferred_context->ip_address);
-
+					"Subscription switch from <%s> to <%s>",
+					subscribed_context->ip_address,
+					preferred_context->ip_address);
 			prv_context_unsubscribe(subscribed_context);
 		}
 		dlr_device_subscribe_to_service_changes(device);
 	}
+}
 
+void dlr_device_append_new_context(dlr_device_t *device,
+				   const gchar *ip_address,
+				   GUPnPDeviceProxy *proxy)
+{
+	prv_device_append_new_context(device, ip_address, proxy);
+	prv_device_subscribe_context(device);
 }
 
 void dlr_device_delete(void *device)
@@ -529,63 +547,233 @@ void dlr_device_subscribe_to_service_changes(dlr_device_t *device)
 	}
 }
 
-gboolean dlr_device_new(dleyna_connector_id_t connection,
+static void prv_as_prop_from_hash_table(const gchar *prop_name,
+					GHashTable *values, GHashTable *props)
+{
+	GVariantBuilder vb;
+	GHashTableIter iter;
+	gpointer key;
+	GVariant *val;
+
+	g_variant_builder_init(&vb, G_VARIANT_TYPE("as"));
+	g_hash_table_iter_init(&iter, values);
+
+	while (g_hash_table_iter_next(&iter, &key, NULL))
+		g_variant_builder_add(&vb, "s", key);
+
+	val = g_variant_ref_sink(g_variant_builder_end(&vb));
+	g_hash_table_insert(props, (gchar *)prop_name, val);
+}
+
+static void prv_process_protocol_info(dlr_device_t *device,
+				      const gchar *protocol_info)
+{
+	GVariant *val;
+	gchar **entries;
+	gchar **type_info;
+	unsigned int i;
+	GHashTable *protocols;
+	GHashTable *types;
+	const char http_prefix[] = "http-";
+
+	DLEYNA_LOG_DEBUG("Enter");
+	DLEYNA_LOG_DEBUG("prv_process_protocol_info: %s", protocol_info);
+
+	protocols = g_hash_table_new_full(g_str_hash, g_str_equal, g_free,
+					  NULL);
+	types = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
+
+	val = g_variant_ref_sink(g_variant_new_string(protocol_info));
+	g_hash_table_insert(device->props.device_props,
+			    DLR_INTERFACE_PROP_PROTOCOL_INFO,
+			    val);
+
+	entries = g_strsplit(protocol_info, ",", 0);
+
+	for (i = 0; entries[i]; ++i) {
+		type_info = g_strsplit(entries[i], ":", 0);
+
+		if (type_info[0] && type_info[1] && type_info[2]) {
+			if (!g_ascii_strncasecmp(http_prefix, type_info[0],
+						 sizeof(http_prefix) - 1)) {
+				type_info[0][sizeof(http_prefix) - 2] = 0;
+			}
+
+			g_hash_table_insert(protocols,
+					    g_ascii_strdown(type_info[0], -1),
+					    NULL);
+			g_hash_table_insert(types,
+					    g_ascii_strdown(type_info[2], -1),
+					    NULL);
+		}
+
+		g_strfreev(type_info);
+	}
+
+	g_strfreev(entries);
+
+	prv_as_prop_from_hash_table(DLR_INTERFACE_PROP_SUPPORTED_URIS,
+				    protocols,
+				    device->props.root_props);
+
+	prv_as_prop_from_hash_table(DLR_INTERFACE_PROP_SUPPORTED_MIME,
+				    types,
+				    device->props.root_props);
+
+	g_hash_table_unref(types);
+	g_hash_table_unref(protocols);
+
+	DLEYNA_LOG_DEBUG("Exit");
+}
+
+static void prv_get_protocol_info_cb(GUPnPServiceProxy *proxy,
+				     GUPnPServiceProxyAction *action,
+				     gpointer user_data)
+{
+	gchar *result = NULL;
+	GError *error = NULL;
+	prv_new_device_ct_t *priv_t = (prv_new_device_ct_t *)user_data;
+
+	DLEYNA_LOG_DEBUG("Enter");
+
+	if (!gupnp_service_proxy_end_action(proxy, action, &error, "Sink",
+					    G_TYPE_STRING, &result, NULL)) {
+		DLEYNA_LOG_WARNING("GetProtocolInfo operation failed: %s",
+				   error->message);
+		goto on_error;
+	}
+
+	prv_process_protocol_info(priv_t->dev, result);
+
+on_error:
+
+	if (error)
+		g_error_free(error);
+
+	g_free(result);
+
+	DLEYNA_LOG_DEBUG("Exit");
+}
+
+static GUPnPServiceProxyAction *prv_get_protocol_info(dlr_service_task_t *task,
+						      GUPnPServiceProxy *proxy,
+						      gboolean *failed)
+{
+	*failed = FALSE;
+
+	return gupnp_service_proxy_begin_action(proxy, "GetProtocolInfo",
+					dlr_service_task_begin_action_cb,
+					task, NULL);
+}
+
+static GUPnPServiceProxyAction *prv_subscribe(dlr_service_task_t *task,
+					      GUPnPServiceProxy *proxy,
+					      gboolean *failed)
+{
+	dlr_device_t *device;
+
+	DLEYNA_LOG_DEBUG("Enter");
+
+	device = dlr_service_task_get_device(task);
+
+	prv_device_subscribe_context(device);
+
+	*failed = FALSE;
+
+	DLEYNA_LOG_DEBUG("Exit");
+
+	return NULL;
+}
+
+static GUPnPServiceProxyAction *prv_declare(dlr_service_task_t *task,
+					    GUPnPServiceProxy *proxy,
+					    gboolean *failed)
+{
+	unsigned int i;
+	dlr_device_t *device;
+	prv_new_device_ct_t *priv_t;
+	const dleyna_connector_dispatch_cb_t *table;
+
+	DLEYNA_LOG_DEBUG("Enter");
+
+	*failed = FALSE;
+
+	device = dlr_service_task_get_device(task);
+
+	priv_t = (prv_new_device_ct_t *)dlr_service_task_get_user_data(task);
+	table = priv_t->dispatch_table;
+
+	for (i = 0; i < DLR_INTERFACE_INFO_MAX; ++i) {
+		device->ids[i] = dlr_server_get_connector()->publish_object(
+				device->connection,
+				device->path,
+				FALSE,
+				i,
+				table + i);
+
+		if (!device->ids[i]) {
+			*failed = TRUE;
+			goto on_error;
+		}
+	}
+
+on_error:
+
+DLEYNA_LOG_DEBUG("Exit");
+
+	return NULL;
+}
+
+dlr_device_t * dlr_device_new(dleyna_connector_id_t connection,
 			GUPnPDeviceProxy *proxy,
 			const gchar *ip_address,
 			guint counter,
 			const dleyna_connector_dispatch_cb_t *dispatch_table,
-			dlr_device_t **device)
+			const dleyna_task_queue_key_t *queue_id)
 {
 	dlr_device_t *dev = g_new0(dlr_device_t, 1);
-	GString *new_path;
-	unsigned int i;
+	prv_new_device_ct_t *priv_t;
+	gchar *new_path;
+	dlr_device_context_t *context;
+	GUPnPServiceProxy *s_proxy;
 
-	DLEYNA_LOG_DEBUG("Enter");
+	DLEYNA_LOG_DEBUG("New Device on %s", ip_address);
 
-	prv_props_init(&dev->props);
+	new_path = g_strdup_printf("%s/%u", DLEYNA_SERVER_PATH, counter);
+	DLEYNA_LOG_DEBUG("Server Path %s", new_path);
+
+	dev = g_new0(dlr_device_t, 1);
+	priv_t = g_new0(prv_new_device_ct_t, 1);
+
 	dev->connection = connection;
 	dev->contexts = g_ptr_array_new_with_free_func(prv_dlr_context_delete);
-
-	dlr_device_append_new_context(dev, ip_address, proxy);
-
-	new_path = g_string_new("");
-	g_string_printf(new_path, "%s/%u", DLEYNA_SERVER_PATH, counter);
-
-	DLEYNA_LOG_DEBUG("Server Path %s", new_path->str);
-
-	for (i = 0; i < DLR_INTERFACE_INFO_MAX; ++i) {
-		dev->ids[i] = dlr_server_get_connector()->publish_object(
-							connection,
-							new_path->str,
-							FALSE,
-							i,
-							dispatch_table + i);
-
-		if (!dev->ids[i])
-			goto on_error;
-	}
-
-	dev->path = g_string_free(new_path, FALSE);
-
-	DLEYNA_LOG_DEBUG("Device path <%s>", dev->path);
-
+	dev->path = new_path;
 	dev->rate = g_strdup("1");
 
-	*device = dev;
+	priv_t->dev = dev;
+	priv_t->dispatch_table = dispatch_table;
 
-	DLEYNA_LOG_DEBUG("Exit with SUCCESS");
+	prv_props_init(&dev->props);
 
-	return TRUE;
+	prv_device_append_new_context(dev, ip_address, proxy);
 
-on_error:
+	context = dlr_device_get_context(dev);
+	s_proxy = context->service_proxies.cm_proxy;
 
-	g_string_free(new_path, TRUE);
+	dlr_service_task_add(queue_id, prv_get_protocol_info, dev, s_proxy,
+			     prv_get_protocol_info_cb, NULL, priv_t);
 
-	dlr_device_delete(dev);
+	dlr_service_task_add(queue_id, prv_subscribe, dev, s_proxy,
+			     NULL, NULL, NULL);
 
-	DLEYNA_LOG_DEBUG("Exit with FAIL");
+	dlr_service_task_add(queue_id, prv_declare, dev, s_proxy,
+			     NULL, g_free, priv_t);
 
-	return FALSE;
+	dleyna_task_queue_start(queue_id);
+
+	DLEYNA_LOG_DEBUG("Exit");
+
+	return dev;
 }
 
 dlr_device_t *dlr_device_from_path(const gchar *path, GHashTable *device_list)
@@ -1238,80 +1426,6 @@ static void prv_rc_last_change_cb(GUPnPServiceProxy *proxy,
 on_error:
 
 	g_object_unref(parser);
-}
-
-static void prv_as_prop_from_hash_table(const gchar *prop_name,
-					GHashTable *values, GHashTable *props)
-{
-	GVariantBuilder vb;
-	GHashTableIter iter;
-	gpointer key;
-	GVariant *val;
-
-	g_variant_builder_init(&vb, G_VARIANT_TYPE("as"));
-	g_hash_table_iter_init(&iter, values);
-
-	while (g_hash_table_iter_next(&iter, &key, NULL))
-		g_variant_builder_add(&vb, "s", key);
-
-	val = g_variant_ref_sink(g_variant_builder_end(&vb));
-	g_hash_table_insert(props, (gchar *)prop_name, val);
-}
-
-static void prv_process_protocol_info(dlr_device_t *device,
-				      const gchar *protocol_info)
-{
-	GVariant *val;
-	gchar **entries;
-	gchar **type_info;
-	unsigned int i;
-	GHashTable *protocols;
-	GHashTable *types;
-	const char http_prefix[] = "http-";
-
-	protocols = g_hash_table_new_full(g_str_hash, g_str_equal, g_free,
-					  NULL);
-	types = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
-
-	val = g_variant_ref_sink(g_variant_new_string(protocol_info));
-	g_hash_table_insert(device->props.device_props,
-			    DLR_INTERFACE_PROP_PROTOCOL_INFO,
-			    val);
-
-	entries = g_strsplit(protocol_info, ",", 0);
-
-	for (i = 0; entries[i]; ++i) {
-		type_info = g_strsplit(entries[i], ":", 0);
-
-		if (type_info[0] && type_info[1] && type_info[2]) {
-			if (!g_ascii_strncasecmp(http_prefix, type_info[0],
-						 sizeof(http_prefix) - 1)) {
-				type_info[0][sizeof(http_prefix) - 2] = 0;
-			}
-
-			g_hash_table_insert(protocols,
-					    g_ascii_strdown(type_info[0], -1),
-					    NULL);
-			g_hash_table_insert(types,
-					    g_ascii_strdown(type_info[2], -1),
-					    NULL);
-		}
-
-		g_strfreev(type_info);
-	}
-
-	g_strfreev(entries);
-
-	prv_as_prop_from_hash_table(DLR_INTERFACE_PROP_SUPPORTED_URIS,
-				    protocols,
-				    device->props.root_props);
-
-	prv_as_prop_from_hash_table(DLR_INTERFACE_PROP_SUPPORTED_MIME,
-				    types,
-				    device->props.root_props);
-
-	g_hash_table_unref(types);
-	g_hash_table_unref(protocols);
 }
 
 static void prv_sink_change_cb(GUPnPServiceProxy *proxy,

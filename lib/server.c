@@ -93,8 +93,6 @@
 
 #define DLR_INTERFACE_CANCEL "Cancel"
 
-#define DLR_SINK "renderer-service-upnp"
-
 typedef struct dlr_context_t_ dlr_context_t;
 struct dlr_context_t_ {
 	guint dlr_id;
@@ -350,6 +348,16 @@ const dleyna_connector_t *dlr_server_get_connector(void)
 	return g_context.connector;
 }
 
+dleyna_task_processor_t *dlr_renderer_service_get_task_processor(void)
+{
+	return g_context.processor;
+}
+
+dlr_upnp_t *dlr_renderer_service_get_upnp(void)
+{
+	return g_context.upnp;
+}
+
 static void prv_process_sync_task(dlr_task_t *task)
 {
 	GError *error;
@@ -583,7 +591,7 @@ static void prv_dlr_method_call(dleyna_connector_id_t conn,
 		else
 			goto finished;
 
-		prv_add_task(task, sender, DLR_SINK);
+		prv_add_task(task, sender, DLR_SERVER_SINK);
 	}
 
 finished:

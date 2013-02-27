@@ -49,8 +49,6 @@ void dlr_async_task_cancelled(GCancellable *cancellable, gpointer user_data);
 
 void dlr_async_task_delete(dlr_async_task_t *task);
 
-void dlr_async_task_lost_object(gpointer user_data);
-
 void dlr_async_task_cancel(dlr_async_task_t *task);
 
 #endif /* DLR_ASYNC_H__ */
