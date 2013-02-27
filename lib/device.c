@@ -94,8 +94,10 @@ static void prv_service_proxies_free(dlr_service_proxies_t *service_proxies)
 		g_object_unref(service_proxies->cm_proxy);
 }
 
-static void prv_dlr_context_unsubscribe(dlr_device_context_t *ctx)
+static void prv_context_unsubscribe(dlr_device_context_t *ctx)
 {
+	DLEYNA_LOG_DEBUG("Enter");
+
 	if (ctx->timeout_id_cm) {
 		(void) g_source_remove(ctx->timeout_id_cm);
 		ctx->timeout_id_cm = 0;
@@ -113,20 +115,34 @@ static void prv_dlr_context_unsubscribe(dlr_device_context_t *ctx)
 		(void) gupnp_service_proxy_remove_notify(
 			ctx->service_proxies.cm_proxy, "SinkProtocolInfo",
 			prv_sink_change_cb, ctx->device);
+
+		gupnp_service_proxy_set_subscribed(
+				ctx->service_proxies.cm_proxy, FALSE);
+
 		ctx->subscribed_cm = FALSE;
 	}
 	if (ctx->subscribed_av) {
 		(void) gupnp_service_proxy_remove_notify(
 			ctx->service_proxies.av_proxy, "LastChange",
 			prv_last_change_cb, ctx->device);
+
+		gupnp_service_proxy_set_subscribed(
+				ctx->service_proxies.av_proxy, FALSE);
+
 		ctx->subscribed_av = FALSE;
 	}
 	if (ctx->subscribed_rc) {
 		(void) gupnp_service_proxy_remove_notify(
 			ctx->service_proxies.rc_proxy, "LastChange",
 			prv_rc_last_change_cb, ctx->device);
+
+		gupnp_service_proxy_set_subscribed(
+				ctx->service_proxies.rc_proxy, FALSE);
+
 		ctx->subscribed_rc = FALSE;
 	}
+
+	DLEYNA_LOG_DEBUG("Exit");
 }
 
 static void prv_dlr_context_delete(gpointer context)
@@ -134,7 +150,7 @@ static void prv_dlr_context_delete(gpointer context)
 	dlr_device_context_t *ctx = context;
 
 	if (ctx) {
-		prv_dlr_context_unsubscribe(ctx);
+		prv_context_unsubscribe(ctx);
 
 		g_free(ctx->ip_address);
 		if (ctx->device_proxy)
@@ -309,7 +325,7 @@ void dlr_device_append_new_context(dlr_device_t *device,
 				subscribed_context->ip_address,
 				preferred_context->ip_address);
 
-			prv_dlr_context_unsubscribe(subscribed_context);
+			prv_context_unsubscribe(subscribed_context);
 		}
 		dlr_device_subscribe_to_service_changes(device);
 	}
@@ -337,6 +353,20 @@ void dlr_device_delete(void *device)
 			g_ptr_array_free(dev->transport_play_speeds, TRUE);
 		g_free(dev->rate);
 		g_free(dev);
+	}
+}
+
+void dlr_device_unsubscribe(void *device)
+{
+	unsigned int i;
+	dlr_device_t *dev = device;
+	dlr_device_context_t *context;
+
+	if (dev) {
+		for (i = 0; i < dev->contexts->len; ++i) {
+			context = g_ptr_array_index(dev->contexts, i);
+			prv_context_unsubscribe(context);
+		}
 	}
 }
 

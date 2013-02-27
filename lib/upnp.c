@@ -632,3 +632,20 @@ void dlr_upnp_lost_client(dlr_upnp_t *upnp, const gchar *client_name)
 {
 	dlr_host_service_lost_client(upnp->host_service, client_name);
 }
+
+void dlr_upnp_unsubscribe(dlr_upnp_t *upnp)
+{
+	GHashTableIter iter;
+	gpointer value;
+	dlr_device_t *device;
+
+	DLEYNA_LOG_DEBUG("Enter");
+
+	g_hash_table_iter_init(&iter, upnp->server_udn_map);
+	while (g_hash_table_iter_next(&iter, NULL, &value)) {
+		device = value;
+		dlr_device_unsubscribe(device);
+	}
+
+	DLEYNA_LOG_DEBUG("Exit");
+}

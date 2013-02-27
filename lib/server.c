@@ -519,8 +519,10 @@ static void prv_control_point_initialize(const dleyna_connector_t *connector,
 	g_set_prgname(DLR_PRG_NAME);
 }
 
-static void prv_control_point_free(void)
+static void prv_control_point_stop_service(void)
 {
+	dlr_upnp_unsubscribe(g_context.upnp);
+
 	if (g_context.upnp)
 		dlr_upnp_delete(g_context.upnp);
 
@@ -530,6 +532,10 @@ static void prv_control_point_free(void)
 							g_context.connection,
 							g_context.dlr_id);
 	}
+}
+
+static void prv_control_point_free(void)
+{
 }
 
 static void prv_add_task(dlr_task_t *task, const gchar *source,
@@ -877,7 +883,8 @@ static const dleyna_control_point_t g_control_point = {
 	prv_control_point_server_name,
 	prv_control_point_server_introspection,
 	prv_control_point_root_introspection,
-	prv_control_point_start_service
+	prv_control_point_start_service,
+	prv_control_point_stop_service
 };
 
 const dleyna_control_point_t *dleyna_control_point_get_renderer(void)
