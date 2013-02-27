@@ -43,6 +43,12 @@
 #include "server.h"
 #include "upnp.h"
 
+#ifdef UA_PREFIX
+	#define DLR_PRG_NAME UA_PREFIX " dLeyna/" VERSION
+#else
+	#define DLR_PRG_NAME "dLeyna/" VERSION
+#endif
+
 #define DLR_INTERFACE_GET_VERSION "GetVersion"
 #define DLR_INTERFACE_GET_SERVERS "GetServers"
 #define DLR_INTERFACE_RELEASE "Release"
@@ -509,6 +515,8 @@ static void prv_control_point_initialize(const dleyna_connector_t *connector,
 	g_context.settings = settings;
 	g_context.connector = connector;
 	g_context.connector->set_client_lost_cb(prv_lost_client);
+
+	g_set_prgname(DLR_PRG_NAME);
 }
 
 static void prv_control_point_free(void)
