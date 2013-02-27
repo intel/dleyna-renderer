@@ -24,9 +24,9 @@
 #define DLR_UPNP_H__
 
 #include <libdleyna/core/connector.h>
-#include "task.h"
 
-typedef struct dlr_upnp_t_ dlr_upnp_t;
+#include "server.h"
+#include "task.h"
 
 enum dlr_interface_type_ {
 	DLR_INTERFACE_INFO_PROPERTIES,

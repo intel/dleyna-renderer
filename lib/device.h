@@ -32,9 +32,8 @@
 #include <libdleyna/core/connector.h>
 
 #include "host-service.h"
+#include "server.h"
 #include "upnp.h"
-
-typedef struct dlr_device_t_ dlr_device_t;
 
 typedef struct dlr_service_proxies_t_ dlr_service_proxies_t;
 struct dlr_service_proxies_t_ {
@@ -70,7 +69,6 @@ struct dlr_device_t_ {
 	guint ids[DLR_INTERFACE_INFO_MAX];
 	gchar *path;
 	GPtrArray *contexts;
-	gpointer current_task;
 	dlr_props_t props;
 	guint timeout_id;
 	guint max_volume;
@@ -78,12 +76,13 @@ struct dlr_device_t_ {
 	gchar *rate;
 };
 
-gboolean dlr_device_new(dleyna_connector_id_t connection,
+dlr_device_t *dlr_device_new(
+			dleyna_connector_id_t connection,
 			GUPnPDeviceProxy *proxy,
 			const gchar *ip_address,
 			guint counter,
 			const dleyna_connector_dispatch_cb_t *dispatch_table,
-			dlr_device_t **device);
+			const dleyna_task_queue_key_t *queue_id);
 
 void dlr_device_delete(void *device);
 

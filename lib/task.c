@@ -287,12 +287,12 @@ void dlr_task_complete(dlr_task_t *task)
 
 	if (task->invocation) {
 		if (task->result_format && task->result)
-			dlr_server_get_connector()->return_response(
+			dlr_renderer_get_connector()->return_response(
 				task->invocation,
 				g_variant_new(task->result_format,
 					      task->result));
 		else
-			dlr_server_get_connector()->return_response(
+			dlr_renderer_get_connector()->return_response(
 							task->invocation,
 							NULL);
 
@@ -310,7 +310,7 @@ void dlr_task_fail(dlr_task_t *task, GError *error)
 		goto finished;
 
 	if (task->invocation) {
-		dlr_server_get_connector()->return_error(task->invocation,
+		dlr_renderer_get_connector()->return_error(task->invocation,
 							 error);
 		task->invocation = NULL;
 	}
@@ -330,8 +330,8 @@ void dlr_task_cancel(dlr_task_t *task)
 	if (task->invocation) {
 		error = g_error_new(DLEYNA_SERVER_ERROR, DLEYNA_ERROR_CANCELLED,
 				    "Operation cancelled.");
-		dlr_server_get_connector()->return_error(task->invocation,
-							 error);
+		dlr_renderer_get_connector()->return_error(task->invocation,
+							   error);
 		task->invocation = NULL;
 		g_error_free(error);
 	}
@@ -354,8 +354,8 @@ void dlr_task_delete(dlr_task_t *task)
 	if (task->invocation) {
 		error = g_error_new(DLEYNA_SERVER_ERROR, DLEYNA_ERROR_DIED,
 				    "Unable to complete command.");
-		dlr_server_get_connector()->return_error(task->invocation,
-							 error);
+		dlr_renderer_get_connector()->return_error(task->invocation,
+							   error);
 		g_error_free(error);
 	}
 

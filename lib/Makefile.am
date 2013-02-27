@@ -26,6 +26,7 @@ libdleyna_renderer_1_0_la_SOURCES =	$(libdleyna_rendererinc_HEADERS) \
 					device.c	 		 \
 					host-service.c			 \
 					server.c			 \
+					service-task.c			 \
 					task.c		 		 \
 					upnp.c
 
