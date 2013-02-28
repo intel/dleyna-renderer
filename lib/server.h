@@ -26,7 +26,7 @@
 #include <libdleyna/core/connector.h>
 #include <libdleyna/core/task-processor.h>
 
-#define DLR_SERVER_SINK "dleyna-renderer"
+#define DLR_RENDERER_SINK "dleyna-renderer"
 
 typedef struct dlr_device_t_ dlr_device_t;
 typedef struct dlr_upnp_t_ dlr_upnp_t;
@@ -35,6 +35,6 @@ dlr_upnp_t *dlr_renderer_service_get_upnp(void);
 
 dleyna_task_processor_t *dlr_renderer_service_get_task_processor(void);
 
-const dleyna_connector_t *dlr_server_get_connector(void);
+const dleyna_connector_t *dlr_renderer_get_connector(void);
 
 #endif /* DLR_SERVER_H__ */

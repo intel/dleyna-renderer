@@ -353,7 +353,7 @@ static const dleyna_connector_dispatch_cb_t
 	prv_renderer_device_method_call
 };
 
-const dleyna_connector_t *dlr_server_get_connector(void)
+const dleyna_connector_t *dlr_renderer_get_connector(void)
 {
 	return g_context.connector;
 }
@@ -605,7 +605,7 @@ static void prv_dlr_method_call(dleyna_connector_id_t conn,
 		else
 			goto finished;
 
-		prv_add_task(task, sender, DLR_SERVER_SINK);
+		prv_add_task(task, sender, DLR_RENDERER_SINK);
 	}
 
 finished:

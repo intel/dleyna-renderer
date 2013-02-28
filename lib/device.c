@@ -201,12 +201,12 @@ static void prv_emit_signal_properties_changed(dlr_device_t *device,
 	g_free(params);
 #endif
 
-	dlr_server_get_connector()->notify(device->connection,
-					   device->path,
-					   DLR_INTERFACE_PROPERTIES,
-					   DLR_INTERFACE_PROPERTIES_CHANGED,
-					   val,
-					   NULL);
+	dlr_renderer_get_connector()->notify(device->connection,
+					     device->path,
+					     DLR_INTERFACE_PROPERTIES,
+					     DLR_INTERFACE_PROPERTIES_CHANGED,
+					     val,
+					     NULL);
 
 	g_variant_unref(val);
 }
@@ -360,7 +360,7 @@ void dlr_device_delete(void *device)
 			(void) g_source_remove(dev->timeout_id);
 
 		for (i = 0; i < DLR_INTERFACE_INFO_MAX && dev->ids[i]; ++i)
-			(void) dlr_server_get_connector()->unpublish_object(
+			(void) dlr_renderer_get_connector()->unpublish_object(
 								dev->connection,
 								dev->ids[i]);
 		g_ptr_array_unref(dev->contexts);
@@ -704,7 +704,7 @@ static GUPnPServiceProxyAction *prv_declare(dlr_service_task_t *task,
 	table = priv_t->dispatch_table;
 
 	for (i = 0; i < DLR_INTERFACE_INFO_MAX; ++i) {
-		device->ids[i] = dlr_server_get_connector()->publish_object(
+		device->ids[i] = dlr_renderer_get_connector()->publish_object(
 				device->connection,
 				device->path,
 				FALSE,

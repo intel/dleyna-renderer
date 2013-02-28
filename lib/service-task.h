@@ -51,11 +51,15 @@ void dlr_service_task_add(const dleyna_task_queue_key_t *queue_id,
 void dlr_service_task_begin_action_cb(GUPnPServiceProxy *proxy,
 				      GUPnPServiceProxyAction *action,
 				      gpointer user_data);
+
 void dlr_service_task_process_cb(dleyna_task_atom_t *atom, gpointer user_data);
+
 void dlr_service_task_cancel_cb(dleyna_task_atom_t *atom, gpointer user_data);
+
 void dlr_service_task_delete_cb(dleyna_task_atom_t *atom, gpointer user_data);
 
 dlr_device_t *dlr_service_task_get_device(dlr_service_task_t *task);
+
 gpointer *dlr_service_task_get_user_data(dlr_service_task_t *task);
 
 #endif /* DLR_SERVICE_TASK_H__ */

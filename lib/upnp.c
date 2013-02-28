@@ -138,7 +138,7 @@ static void prv_server_available_cb(GUPnPControlPoint *cp,
 		queue_id = dleyna_task_processor_add_queue(
 				dlr_renderer_service_get_task_processor(),
 				dlr_service_task_create_source(),
-				DLR_SERVER_SINK,
+				DLR_RENDERER_SINK,
 				DLEYNA_TASK_QUEUE_FLAG_AUTO_REMOVE,
 				dlr_service_task_process_cb,
 				dlr_service_task_cancel_cb,
