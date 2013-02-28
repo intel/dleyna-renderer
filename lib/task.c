@@ -233,6 +233,17 @@ dlr_task_t *dlr_task_set_position_new(dleyna_connector_msg_id_t invocation,
 	return task;
 }
 
+dlr_task_t *dlr_task_goto_track_new(dleyna_connector_msg_id_t invocation,
+				    const gchar *path, GVariant *parameters)
+{
+	dlr_task_t *task = prv_device_task_new(DLR_TASK_GOTO_TRACK,
+					       invocation, path, NULL);
+
+	g_variant_get(parameters, "(u)", &task->ut.seek.track_number);
+
+	return task;
+}
+
 dlr_task_t *dlr_task_open_uri_new(dleyna_connector_msg_id_t invocation,
 				  const gchar *path, GVariant *parameters)
 {

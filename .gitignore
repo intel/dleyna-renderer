@@ -40,3 +40,5 @@ m4/lt~obsolete.m4
 
 server/com.intel.dleyna-renderer.service
 server/dleyna-renderer-service
+
+test/dbus/rendererconsole.pyc

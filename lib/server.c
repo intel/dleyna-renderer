@@ -78,6 +78,7 @@
 #define DLR_INTERFACE_OFFSET "offset"
 #define DLR_INTERFACE_POSITION "position"
 #define DLR_INTERFACE_TRACKID "trackid"
+#define DLR_INTERFACE_TRACK_NUMBER "TrackNumber"
 
 #define DLR_INTERFACE_RAISE "Raise"
 #define DLR_INTERFACE_QUIT "Quit"
@@ -90,6 +91,7 @@
 #define DLR_INTERFACE_OPEN_URI "OpenUri"
 #define DLR_INTERFACE_SEEK "Seek"
 #define DLR_INTERFACE_SET_POSITION "SetPosition"
+#define DLR_INTERFACE_GOTO_TRACK "GotoTrack"
 
 #define DLR_INTERFACE_CANCEL "Cancel"
 
@@ -206,6 +208,10 @@ static const gchar g_server_introspection[] =
 	"      <arg type='x' name='"DLR_INTERFACE_POSITION"'"
 	"           direction='in'/>"
 	"    </method>"
+	"    <method name='"DLR_INTERFACE_GOTO_TRACK"'>"
+	"      <arg type='u' name='"DLR_INTERFACE_TRACK_NUMBER"'"
+	"           direction='in'/>"
+	"    </method>"
 	"    <property type='s' name='"DLR_INTERFACE_PROP_PLAYBACK_STATUS"'"
 	"       access='read'/>"
 	"    <property type='d' name='"DLR_INTERFACE_PROP_RATE"'"
@@ -234,6 +240,10 @@ static const gchar g_server_introspection[] =
 	"    <property type='x' name='"DLR_INTERFACE_PROP_POSITION"'"
 	"       access='read'/>"
 	"    <property type='a{sv}' name='"DLR_INTERFACE_PROP_METADATA"'"
+	"       access='read'/>"
+	"    <property type='u' name='"DLR_INTERFACE_PROP_CURRENT_TRACK"'"
+	"       access='read'/>"
+	"    <property type='u' name='"DLR_INTERFACE_PROP_NUMBER_OF_TRACKS"'"
 	"       access='read'/>"
 	"  </interface>"
 	"  <interface name='"DLEYNA_INTERFACE_PUSH_HOST"'>"
@@ -458,6 +468,10 @@ static void prv_process_async_task(dlr_task_t *task)
 	case DLR_TASK_SET_POSITION:
 		dlr_upnp_set_position(g_context.upnp, task,
 				      prv_async_task_complete);
+		break;
+	case DLR_TASK_GOTO_TRACK:
+		dlr_upnp_goto_track(g_context.upnp, task,
+				    prv_async_task_complete);
 		break;
 	case DLR_TASK_HOST_URI:
 		dlr_upnp_host_uri(g_context.upnp, task,
@@ -733,6 +747,8 @@ static void prv_dlr_player_method_call(dleyna_connector_id_t conn,
 	else if (!strcmp(method, DLR_INTERFACE_SET_POSITION))
 		task = dlr_task_set_position_new(invocation, object,
 						 parameters);
+	else if (!strcmp(method, DLR_INTERFACE_GOTO_TRACK))
+		task = dlr_task_goto_track_new(invocation, object, parameters);
 	else
 		goto finished;
 

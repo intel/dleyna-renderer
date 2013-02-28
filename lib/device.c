@@ -1287,21 +1287,25 @@ static void prv_last_change_cb(GUPnPServiceProxy *proxy,
 	gchar *state = NULL;
 	gchar *duration = NULL;
 	gchar *uri = NULL;
+	guint tracks_number = G_MAXUINT;
+	guint current_track = G_MAXUINT;
 	GVariant *val;
 
 	parser = gupnp_last_change_parser_new();
 
 	if (!gupnp_last_change_parser_parse_last_change(
-		    parser, 0,
-		    g_value_get_string(value),
-		    NULL,
-		    "CurrentTrackMetaData", G_TYPE_STRING, &meta_data,
-		    "CurrentTransportActions", G_TYPE_STRING, &actions,
-		    "TransportPlaySpeed", G_TYPE_STRING, &play_speed,
-		    "TransportState", G_TYPE_STRING, &state,
-		    "CurrentTrackDuration", G_TYPE_STRING, &duration,
-		    "CurrentTrackURI" , G_TYPE_STRING, &uri,
-		    NULL))
+			parser, 0,
+			g_value_get_string(value),
+			NULL,
+			"CurrentTrackMetaData", G_TYPE_STRING, &meta_data,
+			"CurrentTransportActions", G_TYPE_STRING, &actions,
+			"TransportPlaySpeed", G_TYPE_STRING, &play_speed,
+			"TransportState", G_TYPE_STRING, &state,
+			"CurrentTrackDuration", G_TYPE_STRING, &duration,
+			"CurrentTrackURI", G_TYPE_STRING, &uri,
+			"NumberOfTracks", G_TYPE_UINT, &tracks_number,
+			"CurrentTrack", G_TYPE_UINT, &current_track,
+			NULL))
 		goto on_error;
 
 	changed_props_vb = g_variant_builder_new(G_VARIANT_TYPE("a{sv}"));
@@ -1363,6 +1367,20 @@ static void prv_last_change_cb(GUPnPServiceProxy *proxy,
 				 DLR_INTERFACE_PROP_PLAYBACK_STATUS, val,
 				 changed_props_vb);
 		g_free(state);
+	}
+
+	if (tracks_number != G_MAXUINT) {
+		val = g_variant_ref_sink(g_variant_new_uint32(tracks_number));
+		prv_change_props(device->props.player_props,
+				 DLR_INTERFACE_PROP_NUMBER_OF_TRACKS, val,
+				 changed_props_vb);
+	}
+
+	if (current_track != G_MAXUINT) {
+		val = g_variant_ref_sink(g_variant_new_uint32(current_track));
+		prv_change_props(device->props.player_props,
+				 DLR_INTERFACE_PROP_CURRENT_TRACK, val,
+				 changed_props_vb);
 	}
 
 	changed_props = g_variant_ref_sink(
@@ -2234,7 +2252,10 @@ static void prv_device_set_position(dlr_device_t *device, dlr_task_t *task,
 	cb_data->cb = cb;
 	cb_data->device = device;
 
-	position = prv_int64_to_duration(seek_data->position);
+	if (!strcmp(pos_type, "TRACK_NR"))
+		position = g_strdup_printf("%u", seek_data->track_number);
+	else
+		position = prv_int64_to_duration(seek_data->position);
 
 	DLEYNA_LOG_INFO("set %s position : %s", pos_type, position);
 
@@ -2269,6 +2290,12 @@ void dlr_device_set_position(dlr_device_t *device, dlr_task_t *task,
 			     dlr_upnp_task_complete_t cb)
 {
 	prv_device_set_position(device, task,  "ABS_TIME", cb);
+}
+
+void dlr_device_goto_track(dlr_device_t *device, dlr_task_t *task,
+			   dlr_upnp_task_complete_t cb)
+{
+	prv_device_set_position(device, task,  "TRACK_NR", cb);
 }
 
 void dlr_device_host_uri(dlr_device_t *device, dlr_task_t *task,
