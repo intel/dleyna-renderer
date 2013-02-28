@@ -87,6 +87,9 @@ void dlr_upnp_seek(dlr_upnp_t *upnp, dlr_task_t *task,
 void dlr_upnp_set_position(dlr_upnp_t *upnp, dlr_task_t *task,
 			   dlr_upnp_task_complete_t cb);
 
+void dlr_upnp_goto_track(dlr_upnp_t *upnp, dlr_task_t *task,
+			 dlr_upnp_task_complete_t cb);
+
 void dlr_upnp_host_uri(dlr_upnp_t *upnp, dlr_task_t *task,
 		       dlr_upnp_task_complete_t cb);
 

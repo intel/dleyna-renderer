@@ -135,6 +135,9 @@ void dlr_device_seek(dlr_device_t *device, dlr_task_t *task,
 void dlr_device_set_position(dlr_device_t *device, dlr_task_t *task,
 			     dlr_upnp_task_complete_t cb);
 
+void dlr_device_goto_track(dlr_device_t *device, dlr_task_t *task,
+			   dlr_upnp_task_complete_t cb);
+
 void dlr_device_host_uri(dlr_device_t *device, dlr_task_t *task,
 			 dlr_host_service_t *host_service,
 			 dlr_upnp_task_complete_t cb);

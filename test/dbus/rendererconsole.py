@@ -110,6 +110,9 @@ class Renderer(object):
     def seek(self, offset):
         self.__playerIF.Seek(offset)
 
+    def goto_track(self, trackID):
+        self.__playerIF.GotoTrack(trackID)
+
     def set_position(self, trackID, position):
         self.__playerIF.setPosition(trackID, position)
 
