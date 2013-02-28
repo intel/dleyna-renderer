@@ -53,11 +53,15 @@ void dlr_async_task_cancelled(GCancellable *cancellable, gpointer user_data)
 {
 	dlr_async_task_t *cb_data = user_data;
 
-	gupnp_service_proxy_cancel_action(cb_data->proxy, cb_data->action);
+	if (cb_data->proxy != NULL)
+		gupnp_service_proxy_cancel_action(cb_data->proxy,
+						  cb_data->action);
+
 	if (!cb_data->error)
 		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
 					     DLEYNA_ERROR_CANCELLED,
 					     "Operation cancelled.");
+
 	(void) g_idle_add(dlr_async_task_complete, cb_data);
 }
 
