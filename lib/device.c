@@ -29,12 +29,12 @@
 
 #include <libdleyna/core/error.h>
 #include <libdleyna/core/log.h>
+#include <libdleyna/core/service-task.h>
 
 #include "async.h"
 #include "device.h"
 #include "prop-defs.h"
 #include "server.h"
-#include "service-task.h"
 
 typedef void (*dlr_device_local_cb_t)(dlr_async_task_t *cb_data);
 
@@ -655,18 +655,20 @@ on_error:
 	DLEYNA_LOG_DEBUG("Exit");
 }
 
-static GUPnPServiceProxyAction *prv_get_protocol_info(dlr_service_task_t *task,
-						      GUPnPServiceProxy *proxy,
-						      gboolean *failed)
+static GUPnPServiceProxyAction *prv_get_protocol_info(
+						dleyna_service_task_t *task,
+						GUPnPServiceProxy *proxy,
+						gboolean *failed)
 {
 	*failed = FALSE;
 
-	return gupnp_service_proxy_begin_action(proxy, "GetProtocolInfo",
-					dlr_service_task_begin_action_cb,
+	return gupnp_service_proxy_begin_action(
+					proxy, "GetProtocolInfo",
+					dleyna_service_task_begin_action_cb,
 					task, NULL);
 }
 
-static GUPnPServiceProxyAction *prv_subscribe(dlr_service_task_t *task,
+static GUPnPServiceProxyAction *prv_subscribe(dleyna_service_task_t *task,
 					      GUPnPServiceProxy *proxy,
 					      gboolean *failed)
 {
@@ -674,7 +676,7 @@ static GUPnPServiceProxyAction *prv_subscribe(dlr_service_task_t *task,
 
 	DLEYNA_LOG_DEBUG("Enter");
 
-	device = dlr_service_task_get_device(task);
+	device = (dlr_device_t *)dleyna_service_task_get_user_data(task);
 
 	prv_device_subscribe_context(device);
 
@@ -685,7 +687,7 @@ static GUPnPServiceProxyAction *prv_subscribe(dlr_service_task_t *task,
 	return NULL;
 }
 
-static GUPnPServiceProxyAction *prv_declare(dlr_service_task_t *task,
+static GUPnPServiceProxyAction *prv_declare(dleyna_service_task_t *task,
 					    GUPnPServiceProxy *proxy,
 					    gboolean *failed)
 {
@@ -698,9 +700,9 @@ static GUPnPServiceProxyAction *prv_declare(dlr_service_task_t *task,
 
 	*failed = FALSE;
 
-	device = dlr_service_task_get_device(task);
+	priv_t = (prv_new_device_ct_t *)dleyna_service_task_get_user_data(task);
+	device = priv_t->dev;
 
-	priv_t = (prv_new_device_ct_t *)dlr_service_task_get_user_data(task);
 	table = priv_t->dispatch_table;
 
 	for (i = 0; i < DLR_INTERFACE_INFO_MAX; ++i) {
@@ -760,14 +762,14 @@ dlr_device_t * dlr_device_new(dleyna_connector_id_t connection,
 	context = dlr_device_get_context(dev);
 	s_proxy = context->service_proxies.cm_proxy;
 
-	dlr_service_task_add(queue_id, prv_get_protocol_info, dev, s_proxy,
-			     prv_get_protocol_info_cb, NULL, priv_t);
+	dleyna_service_task_add(queue_id, prv_get_protocol_info, s_proxy,
+				prv_get_protocol_info_cb, NULL, priv_t);
 
-	dlr_service_task_add(queue_id, prv_subscribe, dev, s_proxy,
-			     NULL, NULL, NULL);
+	dleyna_service_task_add(queue_id, prv_subscribe, s_proxy,
+				NULL, NULL, dev);
 
-	dlr_service_task_add(queue_id, prv_declare, dev, s_proxy,
-			     NULL, g_free, priv_t);
+	dleyna_service_task_add(queue_id, prv_declare, s_proxy,
+				NULL, g_free, priv_t);
 
 	dleyna_task_queue_start(queue_id);
 
