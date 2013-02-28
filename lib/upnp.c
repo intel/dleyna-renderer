@@ -28,12 +28,12 @@
 
 #include <libdleyna/core/error.h>
 #include <libdleyna/core/log.h>
+#include <libdleyna/core/service-task.h>
 
 #include "async.h"
 #include "device.h"
 #include "host-service.h"
 #include "prop-defs.h"
-#include "service-task.h"
 #include "upnp.h"
 
 struct dlr_upnp_t_ {
@@ -137,12 +137,12 @@ static void prv_server_available_cb(GUPnPControlPoint *cp,
 
 		queue_id = dleyna_task_processor_add_queue(
 				dlr_renderer_service_get_task_processor(),
-				dlr_service_task_create_source(),
+				dleyna_service_task_create_source(),
 				DLR_RENDERER_SINK,
 				DLEYNA_TASK_QUEUE_FLAG_AUTO_REMOVE,
-				dlr_service_task_process_cb,
-				dlr_service_task_cancel_cb,
-				dlr_service_task_delete_cb);
+				dleyna_service_task_process_cb,
+				dleyna_service_task_cancel_cb,
+				dleyna_service_task_delete_cb);
 		dleyna_task_queue_set_finally(queue_id, prv_device_chain_end);
 		dleyna_task_queue_set_user_data(queue_id, priv_t);
 
