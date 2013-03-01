@@ -27,6 +27,8 @@
 #include <libdleyna/core/main-loop.h>
 #include <lib/control-point-renderer.h>
 
+#define DLR_RENDERER_SERVICE_NAME "dleyna-renderer-service"
+
 static guint g_sig_id;
 
 static gboolean prv_quit_handler(GIOChannel *source, GIOCondition condition,
@@ -88,7 +90,7 @@ int main(int argc, char *argv[])
 	if (!prv_init_signal_handler(mask))
 		goto out;
 
-	retval = dleyna_main_loop_start(argv[0],
+	retval = dleyna_main_loop_start(DLR_RENDERER_SERVICE_NAME,
 					dleyna_control_point_get_renderer(),
 					NULL);
 
