@@ -379,9 +379,8 @@ void dlr_upnp_set_prop(dlr_upnp_t *upnp, dlr_task_t *task,
 		cb_data->cb = cb;
 		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
 					     DLEYNA_ERROR_OBJECT_NOT_FOUND,
-					     "Cannot locate a device"
-					     " for the specified "
-					     "object");
+					     "Cannot locate a device for the specified object");
+
 		(void) g_idle_add(dlr_async_task_complete, cb_data);
 	} else {
 		dlr_device_set_prop(device, task, cb);
@@ -408,9 +407,8 @@ void dlr_upnp_get_prop(dlr_upnp_t *upnp, dlr_task_t *task,
 		cb_data->cb = cb;
 		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
 					     DLEYNA_ERROR_OBJECT_NOT_FOUND,
-					     "Cannot locate a device"
-					     " for the specified "
-					     "object");
+					     "Cannot locate a device for the specified object");
+
 		(void) g_idle_add(dlr_async_task_complete, cb_data);
 	} else {
 		dlr_device_get_prop(device, task, cb);
@@ -436,9 +434,8 @@ void dlr_upnp_get_all_props(dlr_upnp_t *upnp, dlr_task_t *task,
 		cb_data->cb = cb;
 		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
 					     DLEYNA_ERROR_OBJECT_NOT_FOUND,
-					     "Cannot locate a device"
-					     " for the specified "
-					     "object");
+					     "Cannot locate a device for the specified object");
+
 		(void) g_idle_add(dlr_async_task_complete, cb_data);
 	} else {
 		dlr_device_get_all_props(device, task, cb);
@@ -461,9 +458,8 @@ void dlr_upnp_play(dlr_upnp_t *upnp, dlr_task_t *task,
 		cb_data->cb = cb;
 		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
 					     DLEYNA_ERROR_OBJECT_NOT_FOUND,
-					     "Cannot locate a device"
-					     " for the specified "
-					     "object");
+					     "Cannot locate a device for the specified object");
+
 		(void) g_idle_add(dlr_async_task_complete, cb_data);
 	} else {
 		dlr_device_play(device, task, cb);
@@ -486,9 +482,8 @@ void dlr_upnp_pause(dlr_upnp_t *upnp, dlr_task_t *task,
 		cb_data->cb = cb;
 		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
 					     DLEYNA_ERROR_OBJECT_NOT_FOUND,
-					     "Cannot locate a device"
-					     " for the specified "
-					     "object");
+					     "Cannot locate a device for the specified object");
+
 		(void) g_idle_add(dlr_async_task_complete, cb_data);
 	} else {
 		dlr_device_pause(device, task, cb);
@@ -511,9 +506,8 @@ void dlr_upnp_play_pause(dlr_upnp_t *upnp, dlr_task_t *task,
 		cb_data->cb = cb;
 		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
 					     DLEYNA_ERROR_OBJECT_NOT_FOUND,
-					     "Cannot locate a device"
-					     " for the specified "
-					     "object");
+					     "Cannot locate a device for the specified object");
+
 		(void) g_idle_add(dlr_async_task_complete, cb_data);
 	} else {
 		dlr_device_play_pause(device, task, cb);
@@ -536,9 +530,8 @@ void dlr_upnp_stop(dlr_upnp_t *upnp, dlr_task_t *task,
 		cb_data->cb = cb;
 		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
 					     DLEYNA_ERROR_OBJECT_NOT_FOUND,
-					     "Cannot locate a device"
-					     " for the specified "
-					     "object");
+					     "Cannot locate a device for the specified object");
+
 		(void) g_idle_add(dlr_async_task_complete, cb_data);
 	} else {
 		dlr_device_stop(device, task, cb);
@@ -561,9 +554,8 @@ void dlr_upnp_next(dlr_upnp_t *upnp, dlr_task_t *task,
 		cb_data->cb = cb;
 		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
 					     DLEYNA_ERROR_OBJECT_NOT_FOUND,
-					     "Cannot locate a device"
-					     " for the specified "
-					     "object");
+					     "Cannot locate a device for the specified object");
+
 		(void) g_idle_add(dlr_async_task_complete, cb_data);
 	} else {
 		dlr_device_next(device, task, cb);
@@ -586,9 +578,8 @@ void dlr_upnp_previous(dlr_upnp_t *upnp, dlr_task_t *task,
 		cb_data->cb = cb;
 		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
 					     DLEYNA_ERROR_OBJECT_NOT_FOUND,
-					     "Cannot locate a device"
-					     " for the specified "
-					     "object");
+					     "Cannot locate a device for the specified object");
+
 		(void) g_idle_add(dlr_async_task_complete, cb_data);
 	} else {
 		dlr_device_previous(device, task, cb);
@@ -611,9 +602,8 @@ void dlr_upnp_open_uri(dlr_upnp_t *upnp, dlr_task_t *task,
 		cb_data->cb = cb;
 		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
 					     DLEYNA_ERROR_OBJECT_NOT_FOUND,
-					     "Cannot locate a device"
-					     " for the specified "
-					     "object");
+					     "Cannot locate a device for the specified object");
+
 		(void) g_idle_add(dlr_async_task_complete, cb_data);
 	} else {
 		dlr_device_open_uri(device, task, cb);
@@ -636,9 +626,8 @@ void dlr_upnp_seek(dlr_upnp_t *upnp, dlr_task_t *task,
 		cb_data->cb = cb;
 		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
 					     DLEYNA_ERROR_OBJECT_NOT_FOUND,
-					     "Cannot locate a device"
-					     " for the specified "
-					     "object");
+					     "Cannot locate a device for the specified object");
+
 		(void) g_idle_add(dlr_async_task_complete, cb_data);
 	} else {
 		dlr_device_seek(device, task, cb);
@@ -661,9 +650,8 @@ void dlr_upnp_set_position(dlr_upnp_t *upnp, dlr_task_t *task,
 		cb_data->cb = cb;
 		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
 					     DLEYNA_ERROR_OBJECT_NOT_FOUND,
-					     "Cannot locate a device"
-					     " for the specified "
-					     "object");
+					     "Cannot locate a device for the specified object");
+
 		(void) g_idle_add(dlr_async_task_complete, cb_data);
 	} else {
 		dlr_device_set_position(device, task, cb);
@@ -686,9 +674,8 @@ void dlr_upnp_goto_track(dlr_upnp_t *upnp, dlr_task_t *task,
 		cb_data->cb = cb;
 		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
 					     DLEYNA_ERROR_OBJECT_NOT_FOUND,
-					     "Cannot locate a device"
-					     " for the specified "
-					     "object");
+					     "Cannot locate a device for the specified object");
+
 		(void) g_idle_add(dlr_async_task_complete, cb_data);
 	} else {
 		dlr_device_goto_track(device, task, cb);
@@ -711,9 +698,8 @@ void dlr_upnp_host_uri(dlr_upnp_t *upnp, dlr_task_t *task,
 		cb_data->cb = cb;
 		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
 					     DLEYNA_ERROR_OBJECT_NOT_FOUND,
-					     "Cannot locate a device"
-					     " for the specified "
-					     "object");
+					     "Cannot locate a device for the specified object");
+
 		(void) g_idle_add(dlr_async_task_complete, cb_data);
 	} else {
 		dlr_device_host_uri(device, task, upnp->host_service, cb);
@@ -736,9 +722,8 @@ void dlr_upnp_remove_uri(dlr_upnp_t *upnp, dlr_task_t *task,
 		cb_data->cb = cb;
 		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
 					     DLEYNA_ERROR_OBJECT_NOT_FOUND,
-					     "Cannot locate a device"
-					     " for the specified "
-					     "object");
+					     "Cannot locate a device for the specified object");
+
 		(void) g_idle_add(dlr_async_task_complete, cb_data);
 	} else {
 		dlr_device_remove_uri(device, task, upnp->host_service, cb);

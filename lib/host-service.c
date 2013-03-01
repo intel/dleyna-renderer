@@ -182,8 +182,8 @@ static dlr_host_file_t *prv_host_file_new(const gchar *file, unsigned int id,
 	if (!g_file_test(file, G_FILE_TEST_IS_REGULAR | G_FILE_TEST_EXISTS)) {
 		*error = g_error_new(DLEYNA_SERVER_ERROR,
 				     DLEYNA_ERROR_OBJECT_NOT_FOUND,
-				     "File %s does not exist or is not"
-				     " a regular file", file);
+				     "File %s does not exist or is not a regular file",
+				     file);
 		goto on_error;
 	}
 
@@ -195,8 +195,8 @@ static dlr_host_file_t *prv_host_file_new(const gchar *file, unsigned int id,
 
 	if (!content_type) {
 		*error = g_error_new(DLEYNA_SERVER_ERROR, DLEYNA_ERROR_BAD_MIME,
-				     "Unable to determine Content Type for"
-				     " %s", file);
+				     "Unable to determine Content Type for %s",
+				     file);
 		goto on_error;
 	}
 
@@ -204,8 +204,8 @@ static dlr_host_file_t *prv_host_file_new(const gchar *file, unsigned int id,
 
 	if (!hf->mime_type) {
 		*error = g_error_new(DLEYNA_SERVER_ERROR, DLEYNA_ERROR_BAD_MIME,
-				     "Unable to determine MIME Type for"
-				     " %s", file);
+				     "Unable to determine MIME Type for %s",
+				     file);
 		goto on_error;
 	}
 
@@ -332,7 +332,8 @@ static void prv_soup_server_cb(SoupServer *server, SoupMessage *msg,
 		g_signal_connect(msg, "finished",
 				 G_CALLBACK(prv_soup_message_finished_cb), hf);
 
-		soup_message_set_response(msg, hf->mime_type,
+		soup_message_set_response(
+				msg, hf->mime_type,
 				SOUP_MEMORY_STATIC,
 				g_mapped_file_get_contents(hf->mapped_file),
 				g_mapped_file_get_length(hf->mapped_file));

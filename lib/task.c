@@ -322,7 +322,7 @@ void dlr_task_fail(dlr_task_t *task, GError *error)
 
 	if (task->invocation) {
 		dlr_renderer_get_connector()->return_error(task->invocation,
-							 error);
+							   error);
 		task->invocation = NULL;
 	}
 

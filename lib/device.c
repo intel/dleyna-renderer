@@ -726,7 +726,8 @@ DLEYNA_LOG_DEBUG("Exit");
 	return NULL;
 }
 
-dlr_device_t * dlr_device_new(dleyna_connector_id_t connection,
+dlr_device_t *dlr_device_new(
+			dleyna_connector_id_t connection,
 			GUPnPDeviceProxy *proxy,
 			const gchar *ip_address,
 			guint counter,
@@ -1479,8 +1480,8 @@ static void prv_get_position_info_cb(GUPnPServiceProxy *proxy,
 					    G_TYPE_STRING, &rel_pos, NULL)) {
 		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
 					     DLEYNA_ERROR_OPERATION_FAILED,
-					     "GetPositionInfo operation "
-					     "failed: %s", upnp_error->message);
+					     "GetPositionInfo operation failed: %s",
+					     upnp_error->message);
 		g_error_free(upnp_error);
 
 		goto on_error;
@@ -1885,8 +1886,8 @@ static void prv_simple_call_cb(GUPnPServiceProxy *proxy,
 					    &upnp_error, NULL)) {
 		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
 					     DLEYNA_ERROR_OPERATION_FAILED,
-					     "Operation "
-					     "failed: %s", upnp_error->message);
+					     "Operation failed: %s",
+					     upnp_error->message);
 		g_error_free(upnp_error);
 	}
 
@@ -1932,8 +1933,7 @@ static GVariant *prv_get_rate_value_from_double(GVariant *params,
 	if (tps == NULL) {
 		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
 					     DLEYNA_ERROR_OPERATION_FAILED,
-					     "TransportPlaySpeeds list"
-					     " is empty");
+					     "TransportPlaySpeeds list is empty");
 		goto exit;
 	}
 
@@ -2014,8 +2014,7 @@ void dlr_device_set_prop(dlr_device_t *device, dlr_task_t *task,
 	    g_strcmp0(set_prop->interface_name, "") != 0) {
 		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
 					     DLEYNA_ERROR_UNKNOWN_INTERFACE,
-					     "Interface %s not managed "
-					     "for property setting",
+					     "Interface %s not managed for property setting",
 					     set_prop->interface_name);
 		goto exit;
 	}
@@ -2028,8 +2027,8 @@ void dlr_device_set_prop(dlr_device_t *device, dlr_task_t *task,
 	if (g_strcmp0(set_prop->prop_name, DLR_INTERFACE_PROP_VOLUME) != 0) {
 		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
 					     DLEYNA_ERROR_UNKNOWN_PROPERTY,
-					     "Property %s not managed for"
-					     " setting", set_prop->prop_name);
+					     "Property %s not managed for setting",
+					     set_prop->prop_name);
 		goto exit;
 	}
 
@@ -2367,8 +2366,7 @@ void dlr_device_remove_uri(dlr_device_t *device, dlr_task_t *task,
 				     host_uri->client, host_uri->uri)) {
 		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
 					     DLEYNA_ERROR_OBJECT_NOT_FOUND,
-					     "File not hosted for specified "
-					     " device");
+					     "File not hosted for specified device");
 	}
 
 	(void) g_idle_add(dlr_async_task_complete, cb_data);
