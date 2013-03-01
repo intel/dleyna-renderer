@@ -226,7 +226,7 @@ AC_SUBST([with_log_type])
 AC_CONFIG_FILES([Makefile					\
 		 lib/Makefile					\
 		 lib/dleyna-renderer-1.0.pc			\
-		 lib/dleyna-renderer.conf			\
+		 lib/dleyna-renderer-service.conf		\
 		 server/com.intel.dleyna-renderer.service	\
 		 server/dleyna-renderer-service-1.0.pc		\
 		 server/Makefile
