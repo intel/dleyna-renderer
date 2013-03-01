@@ -626,8 +626,7 @@ static const gchar *prv_get_device_id(const gchar *object, GError **error)
 
 		*error = g_error_new(DLEYNA_SERVER_ERROR,
 				     DLEYNA_ERROR_OBJECT_NOT_FOUND,
-				     "Cannot locate device corresponding to"
-				     " the specified path");
+				     "Cannot locate device corresponding to the specified path");
 		goto on_error;
 	}
 
