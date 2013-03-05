@@ -1,0 +1,341 @@
+API
+---
+
+Dleyna-renderer-service is a middleware component.  It is designed to be
+launched by d-Bus activation when needed.  It automatically shuts down
+when the last of its clients quits or releases its connection.
+
+Dleyna-renderer-service currently connects to the d-Bus session bus,
+although this may change in the future.  It exposes two different
+types of objects:
+
+1. A manager object.  There is only ever a single instance of this
+object.  It can be used to retrieve a list of the DMRs on the local
+area network.  It is also used to perform certain server independent
+tasks.
+
+2. Server objects.  One separate object is exposed for each DMR
+available on the LAN.  These objects expose interfaces that allow
+clients to retrieve information about the renderers, to manipulate
+them and to push content to them.
+
+The remainder of this document will describe the two d-Bus objects
+listed above and the interfaces they support.
+
+
+The Manager Object:
+-------------------
+
+There is only ever a single instance of this object.  The manager
+object exposes a single d-Bus interface,
+com.intel.dLeynaRenderer.Manager.
+
+
+com.intel.dLeynaRenderer.Manager
+--------------------------------
+
+Methods:
+----------
+
+The interface com.intel.dLeynaRenderer.Manager contains 3
+methods.  Descriptions of each of these methods along with their d-Bus
+signatures are given below.
+
+GetServers() -> ao
+
+GetServers takes no parameters and returns an array of d-Bus object
+paths.  Each of these paths reference a d-Bus object that represents a
+single DMR.
+
+GetVersion() -> s
+
+Returns the version number of dleyna-renderer-service
+
+Release()
+
+Indicates to dleyna-renderer-service that a client is no longer
+interested in its services.  Internally, dleyna-renderer-service
+maintains a reference count.  This reference count is increased when a
+new client connects.  It is decreased when a client quits.  When the
+reference count reaches 0, dleyna-renderer-service exits.  A call to
+Release also decreases the reference count.  Clients should call this
+method if they intend to keep running but they have no immediate plans
+to invoke any of dleyna-renderer-service's methods.  This allows
+dleyna-renderer-service to quit, freeing up system resources.
+
+
+Signals:
+---------
+
+The com.intel.dLeynaRenderer.Manager interface also exposes two signals.
+
+FoundServer(o)
+
+Is generated whenever a new DMR is detected on the local area network.
+The signal contains the path of the newly discovered server.
+
+LostServer(o)
+
+Is generated whenever a DMR is shutdown.  The signal contains the path
+of the server which has just been shutdown.
+
+
+The Server Objects:
+------------------
+
+Dleyna-renderer-service exposes a separate d-Bus object for each DMR it
+detects on the LAN.  These objects serve three purposes.
+
+1. They allow the client to retrieve information about the DMR, such
+as its name, the URL of its icon, its manufacturer, the currently
+playing content, etc.
+
+2. They allow the client to manipulate the DMR, i.e., to play a given
+URL, to play, pause and stop, etc.
+
+3. They can be used to implement two box push.
+
+Each server object exposes three separate interfaces:
+org.mpris.MediaPlayer2, org.mpris.MediaPlayer2.Player and
+com.intel.dLeynaRenderer.PushHost.
+
+com.intel.dLeynaRenderer.RendererDevice:
+----------------------------------------
+
+The com.intel.dLeynaRenderer.RendererDevice interface exposes information about
+the DMR via a number of d-Bus properties. These properties are described
+below:
+
+|------------------------------------------------------------------------------|
+|     Name          | Type  | m/o* |              Description                  |
+|------------------------------------------------------------------------------|
+| DeviceType        |   s   |  m   | The UPnP type of the device, e.g.,        |
+|                   |       |      | urn:schemas-upnp-org:device:MediaServer:1 |
+|------------------------------------------------------------------------------|
+| UDN               |   s   |  m   | The Unique Device Name of the server.     |
+|------------------------------------------------------------------------------|
+| FriendlyName      |   s   |  m   | The friendly name of the media server.    |
+-------------------------------------------------------------------------------|
+| IconURL           |   s   |  o   | A URL pointing to an icon that            |
+|                   |       |      | graphically identifies the server         |
+|------------------------------------------------------------------------------|
+| Manufacturer      |   s   |  m   | A string identifying the manufacturer of  |
+|                   |       |      | the server                                |
+|------------------------------------------------------------------------------|
+| ManufacturerUrl   |   s   |  o   | A URL pointing to the manufacturer's web  |
+|                   |       |      |  site.                                    |
+|------------------------------------------------------------------------------|
+| ModelDescription  |   s   |  o   | A description of the server.              |
+|------------------------------------------------------------------------------|
+| ModelName         |   s   |  m   | The model name of the server.             |
+|------------------------------------------------------------------------------|
+| ModelNumber       |   s   |  o   | The server's version number               |
+|------------------------------------------------------------------------------|
+| SerialNumber      |   s   |  o   | The server's serial number                |
+|------------------------------------------------------------------------------|
+| PresentationURL   |   s   |  o   | The presentation URL of the server, i.e., |
+|                   |       |      | a link to it's HTML management interface. |
+|------------------------------------------------------------------------------|
+| ProtocolInfo      |   s   |   m  | A string that identifies all of the file  |
+|                   |       |      | formats and network protocol combinations |
+|                   |       |      | that the renderer supports.  (1)          |
+|------------------------------------------------------------------------------|
+
+(* where m/o indicates whether the property is optional or mandatory )
+
+(1) The idea behind the ProtocolInfo property is a little complicated and
+requires further discussion.  The Protocol info field is a comma
+separated list of protocol info values.  Each protocol info value
+consists of 4 fields separated by colons.  Unfortunately, the format
+is too complex to describe in this document.  The reader is referred
+to the UPnP Connection Manager Service Template document (2) and the
+DLNA Guidelines (3) where it is described extensively.  However, an
+example protocol info value is presented below, to give the reader an
+idea of what such a string might look like.
+
+"http-get:*:audio/mp4:DLNA.ORG_PN=AMR_WBplus,
+http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_MED"
+
+The ProtocolInfo property identifies the types of URLs the renderer is
+capable of playing.  The example value given above indicates that the
+renderer is capable of retrieving (via HTTP) and playing/displaying
+audio MP4 and JPEG files.  Now the astute among you might notice that
+the information provided by the ProtocolInfo property is already
+available via the standard MPRIS SupportedMimeTypes and
+SupportedUriSchemes properties.  This is true, however ProtocolInfo is
+still useful as its value is specifically formatted to make it easy to
+write a certain type of application called a Digital Media Controller
+(DMC).
+
+When you write a DMC you instruct a DMR to play a media file exposed
+by a Digital Media Server (DMS).  DMSs often publish the same piece of
+media content in a number of formats, exposing a separate URL for each
+format.  The DMC can use the ProtocolInfo of his chosen renderer to
+determine which of the many formats is most suitable for the renderer
+and having done this to determine which URL to use.  If the DMC uses
+dleyna-server-service to browse the contents of DMSs, it can achieve this
+simply by identifying the dleyna-server-service d-Bus object of the file
+it wishes to play, and then invoking this object's
+GetCompatibleResource method, passing the renderer's ProtocolInfo
+string as a parameter.  This method will then return the most suitable
+URL for the renderer.
+
+Methods:
+---------
+
+The com.intel.dLeynaRenderer.RendererDevice interface currently exposes a
+single method:
+
+Cancel() -> void
+
+Cancels all requests a client has outstanding on that server.
+
+
+org.mpris.MediaPlayer2
+----------------------
+
+This interface is part of the MPRIS standard and is documented in the
+MRPIS D-Bus Interface Specification document [1].  As the interface is
+well described in this document, this section will focus on the
+peculiarities of dleyna-renderer-service's implementation of this
+interface rather than the interface itself.
+
+The main points of interest are:
+
+- The methods Raise and Quit are implemented but they do nothing.  The
+  CanRaise and CanQuit properties necessarily return false.
+
+- The property HasTrackList is always set to false.  This is because
+  TrackLists are not yet implemented.  Hopefully, this will change in
+  the future.
+
+- The property CanSetFullscreen is always set to false and Fullscreen
+  is not implemented.
+
+- The DesktopEntry is not implemented.
+
+
+org.mpris.MediaPlayer2.Player
+-----------------------------
+
+Like org.mpris.MediaPlayer2, org.mpris.MediaPlayer2.Player is a
+standard MPRIS2 interface and is already documented in the MRPIS2
+specification.  Consequently, this section will only describe the
+peculiarities of dleyna-renderer-service's implementation of this
+interface.  The main points of interest are noted below:
+
+- The LoopStatus property is not implemented.
+
+- The Shuffle property is not implemented.
+
+- The Seek signal is not implemented yet.
+
+- The first parameter to SetPosition is ignored, and any valid d-Bus
+  path can be specified as its value.
+
+- PropertiesChanged signals are emitted via the org.freedesktop.DBus.Properties
+  interface of a server object instance when org.mpris.MediaPlayer2.Player
+  interface properties value change.
+
+- Some new properties have been added, they are described below:
+
+|------------------------------------------------------------------------------|
+|     Name            |  Type  |m/o*|              Description                 |
+|------------------------------------------------------------------------------|
+| TransportPlaySpeeds |   ad   | m  | Allowed play speed values supported by   |
+|                     |        |    | the renderer. It allows clients to set   |
+|                     |        |    | the Rate property with a value that will |
+|                     |        |    | be accepted by the DMR.                  |
+|------------------------------------------------------------------------------|
+| CurrentTrack        |    u   | m  | The the sequence number of the currently |
+|                     |        |    | selected track.                          |
+|------------------------------------------------------------------------------|
+| NumberOfTracks      |    u   | m  | the number of tracks in the currently    |
+|                     |        |    | selected media.                          |
+-------------------------------------------------------------------------------|
+
+- A new method has been added, it is described below:
+
+GotoTrack(u TrackNumber) -> void
+
+Performs a seek operation to the specified track number.
+
+
+org.mpris.MediaPlayer2.TrackList and org.mpris.MediaPlayer2.Playlists
+---------------------------------------------------------------------
+Are not yet implemented.
+
+
+com.intel.dLeynaRenderer.PushHost
+---------------------------------
+
+DMRs participate in two different DLNA use cases.  3 Box System and 2
+Box Push.  In the 3 Box System a DMC instructs a DMR to play a URL
+hosted by a DMS.  In 2 Box Push, an application pushes content it has
+created or downloaded directly to a renderer.  In 2 Box Push the DMS
+is not involved at all and this presents a problem as DMRs do not
+really support the concept of Push.  Rather than pushing files to a
+DMR, the client passes it a URL and then instructs the DMR to pull the
+content from the URL.  For this to work, a web server must be running
+somewhere to host the URL.  In the 3 Box System the role of the web
+server is played by the DMS.  Unfortunately, as we have seen, in 2 Box
+Push there is no DMS.  So who is to host the content to be pushed?
+
+Conceptually, each application that wishes to push a file to a DMR
+could start its own web server on which it could temporarily host the
+file to be pushed.  However, this is complicated for application
+developers and also wasteful of system resources.  Potentially, every
+application that can create of download content can push this content
+to DMRs.  As, these applications can legitimately run simultaneously
+having them run their own web servers would consume unnecessary system
+resources.
+
+Dleyna-renderer-service solves these problems by providing both a web
+server and simple APIs that can be used by clients to host files on
+this server.  As only one instance of dleyna-renderer-service runs at
+any one time (well currently only one can run per user session) we
+avoid the proliferation of web servers.  These push APIs are provided
+by the com.intel.dLeynaRenderer.PushHost interface which is
+implemented by all renderer server objects.
+
+com.intel.dLeynaRenderer.PushHost contains two methods which are
+described in below.
+
+
+HostFile(s path) -> s
+
+Hosts a file on dleyna-renderer-service's web server.  The parameter
+path should be a full path to the local file to be hosted, e.g.,
+/home/user/Podcasts/pod.mp3.  The value returned is the URL of the
+newly hosted file.
+
+
+RemoveFile(s path)
+
+Stops hosting the file whose full path is passed as parameter to this
+function.
+
+Dleyna-renderer-service only runs a web server when files are being
+hosted.  Once all clients have stopped hosting files, either by
+calling RemoveFile or by exiting, dleyna-renderer-service will shut down
+its web server.  Actually, dleyna-renderer-service may run more than one
+web server if multiple DMRs are accessed over different interfaces.
+When a client chooses to host a file for a given renderer,
+dleyna-renderer-service checks to see if a web server is already running
+on the interface through which this renderer is accessible.  If it is
+not it starts a new web server.  It follows that if clients try to
+host multiple files for multiple renderers running on different
+interfaces, dleyna-renderer-service may actually run multiple servers.
+However, it will only run one server per interface, and the server
+will be shutdown as soon as it no longer has any files to host.
+
+References:
+-----------
+
+1) MRPIS D-Bus Interface Specification
+(http://specifications.freedesktop.org/mpris-spec/latest/)
+
+2) ConnectionManager:2 Service Template (http://www.upnp.org/)
+
+3) DLNA Guidelines December 2011, Part 1 Architectures and Protocols
+(http://www.dlna.org/)
