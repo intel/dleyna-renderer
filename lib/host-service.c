@@ -36,7 +36,7 @@
 
 #include "host-service.h"
 
-#define DLR_HOST_SERVICE_ROOT "/rendererserviceupnp"
+#define DLR_HOST_SERVICE_ROOT "/dleynarenderer"
 
 typedef struct dlr_host_file_t_ dlr_host_file_t;
 struct dlr_host_file_t_ {
