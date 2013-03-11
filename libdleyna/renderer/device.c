@@ -2264,8 +2264,10 @@ void dlr_device_open_uri(dlr_device_t *device, dlr_task_t *task,
 	dlr_device_context_t *context;
 	dlr_async_task_t *cb_data = (dlr_async_task_t *)task;
 	dlr_task_open_uri_t *open_uri_data = &task->ut.open_uri;
+	gchar *metadata = open_uri_data->metadata;
 
 	DLEYNA_LOG_INFO("URI: %s", open_uri_data->uri);
+	DLEYNA_LOG_INFO("METADATA: %s", metadata ? metadata : "Not provided");
 
 	context = dlr_device_get_context(device);
 	cb_data->cb = cb;
@@ -2289,7 +2291,8 @@ void dlr_device_open_uri(dlr_device_t *device, dlr_task_t *task,
 						 "CurrentURI", G_TYPE_STRING,
 						 open_uri_data->uri,
 						 "CurrentURIMetaData",
-						 G_TYPE_STRING, "",
+						 G_TYPE_STRING,
+						 metadata ? metadata : "",
 						 NULL);
 }
 
