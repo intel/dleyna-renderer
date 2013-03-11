@@ -25,7 +25,7 @@
 #include <sys/signalfd.h>
 
 #include <libdleyna/core/main-loop.h>
-#include <lib/control-point-renderer.h>
+#include <libdleyna/renderer/control-point-renderer.h>
 
 #define DLR_RENDERER_SERVICE_NAME "dleyna-renderer-service"
 

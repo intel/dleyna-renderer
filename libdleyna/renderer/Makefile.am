@@ -53,7 +53,15 @@ sysconf_DATA = dleyna-renderer-service.conf
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = dleyna-renderer-1.0.pc
 
-EXTRA_DIST = $(sysconf_DATA)
+EXTRA_DIST = 	$(sysconf_DATA)			\
+		async.h				\
+		device.h			\
+		host-service.h			\
+		prop-defs.h			\
+		server.h			\
+		task.h				\
+		upnp.h
+
 CLEANFILES = $(pkgconfig_DATA) dleyna-renderer-service.conf
 DISTCLEANFILES = $(pkgconfig_DATA) dleyna-renderer-service.conf
 
