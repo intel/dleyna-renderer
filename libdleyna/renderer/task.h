@@ -75,6 +75,7 @@ struct dlr_task_set_prop_t_ {
 typedef struct dlr_task_open_uri_t_ dlr_task_open_uri_t;
 struct dlr_task_open_uri_t_ {
 	gchar *uri;
+	gchar *metadata;
 };
 
 typedef struct dlr_task_seek_t_ dlr_task_seek_t;
@@ -154,6 +155,9 @@ dlr_task_t *dlr_task_goto_track_new(dleyna_connector_msg_id_t invocation,
 
 dlr_task_t *dlr_task_open_uri_new(dleyna_connector_msg_id_t invocation,
 				  const gchar *path, GVariant *parameters);
+
+dlr_task_t *dlr_task_open_uri_ex_new(dleyna_connector_msg_id_t invocation,
+				     const gchar *path, GVariant *parameters);
 
 dlr_task_t *dlr_task_host_uri_new(dleyna_connector_msg_id_t invocation,
 				  const gchar *path, const gchar *sender,

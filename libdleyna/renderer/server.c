@@ -65,6 +65,7 @@
 #define DLR_INTERFACE_PATH "Path"
 #define DLR_INTERFACE_URI "Uri"
 #define DLR_INTERFACE_ID "Id"
+#define DLR_INTERFACE_METADATA "Metadata"
 
 #define DLR_INTERFACE_CHANGED_PROPERTIES "changed_properties"
 #define DLR_INTERFACE_INVALIDATED_PROPERTIES "invalidated_properties"
@@ -89,6 +90,7 @@
 #define DLR_INTERFACE_PAUSE "Pause"
 #define DLR_INTERFACE_STOP "Stop"
 #define DLR_INTERFACE_OPEN_URI "OpenUri"
+#define DLR_INTERFACE_OPEN_URI_EX "OpenUriEx"
 #define DLR_INTERFACE_SEEK "Seek"
 #define DLR_INTERFACE_SET_POSITION "SetPosition"
 #define DLR_INTERFACE_GOTO_TRACK "GotoTrack"
@@ -196,6 +198,12 @@ static const gchar g_server_introspection[] =
 	"    </method>"
 	"    <method name='"DLR_INTERFACE_OPEN_URI"'>"
 	"      <arg type='s' name='"DLR_INTERFACE_URI"'"
+	"           direction='in'/>"
+	"    </method>"
+	"    <method name='"DLR_INTERFACE_OPEN_URI_EX"'>"
+	"      <arg type='s' name='"DLR_INTERFACE_URI"'"
+	"           direction='in'/>"
+	"      <arg type='s' name='"DLR_INTERFACE_METADATA"'"
 	"           direction='in'/>"
 	"    </method>"
 	"    <method name='"DLR_INTERFACE_SEEK"'>"
@@ -741,6 +749,8 @@ static void prv_dlr_player_method_call(dleyna_connector_id_t conn,
 		task = dlr_task_previous_new(invocation, object);
 	else if (!strcmp(method, DLR_INTERFACE_OPEN_URI))
 		task = dlr_task_open_uri_new(invocation, object, parameters);
+	else if (!strcmp(method, DLR_INTERFACE_OPEN_URI_EX))
+		task = dlr_task_open_uri_ex_new(invocation, object, parameters);
 	else if (!strcmp(method, DLR_INTERFACE_SEEK))
 		task = dlr_task_seek_new(invocation, object, parameters);
 	else if (!strcmp(method, DLR_INTERFACE_SET_POSITION))

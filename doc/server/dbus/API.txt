@@ -254,11 +254,18 @@ interface.  The main points of interest are noted below:
 |                     |        |    | selected media.                          |
 -------------------------------------------------------------------------------|
 
-- A new method has been added, it is described below:
+- new methods have been added, they are described below:
 
 GotoTrack(u TrackNumber) -> void
 
 Performs a seek operation to the specified track number.
+
+
+OpenUriEx(s Uri, s Metadata) -> void
+
+Same as the OpenUri method of the org.mpris.MediaPlayer2.Player MPRIS2 standard
+interface, with an additional parameter Metadata to specify the DIDL-Lite XML
+description of the item to be opened.
 
 
 org.mpris.MediaPlayer2.TrackList and org.mpris.MediaPlayer2.Playlists
