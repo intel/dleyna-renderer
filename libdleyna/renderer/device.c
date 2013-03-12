@@ -1411,6 +1411,7 @@ static void prv_rc_last_change_cb(GUPnPServiceProxy *proxy,
 	GVariant *val;
 	guint device_volume;
 	double mpris_volume;
+	guint mute = G_MAXUINT;
 
 	parser = gupnp_last_change_parser_new();
 
@@ -1419,6 +1420,7 @@ static void prv_rc_last_change_cb(GUPnPServiceProxy *proxy,
 		    g_value_get_string(value),
 		    NULL,
 		    "Volume", G_TYPE_UINT, &device_volume,
+		    "Mute", G_TYPE_UINT, &mute,
 		    NULL))
 		goto on_error;
 
@@ -1435,6 +1437,14 @@ static void prv_rc_last_change_cb(GUPnPServiceProxy *proxy,
 	prv_change_props(device->props.player_props,
 			 DLR_INTERFACE_PROP_VOLUME, val,
 			 changed_props_vb);
+
+	if (mute != G_MAXUINT) {
+		val = g_variant_ref_sink(
+				g_variant_new_boolean(mute ? TRUE : FALSE));
+		prv_change_props(device->props.player_props,
+				 DLR_INTERFACE_PROP_MUTE, val,
+				 changed_props_vb);
+	}
 
 	changed_props = g_variant_ref_sink(
 				g_variant_builder_end(changed_props_vb));
@@ -1915,6 +1925,25 @@ static void prv_set_volume(dlr_async_task_t *cb_data, GVariant *params)
 						 NULL);
 }
 
+static void prv_set_mute(dlr_async_task_t *cb_data, GVariant *params)
+{
+	gboolean mute;
+
+	mute = g_variant_get_boolean(params);
+
+	DLEYNA_LOG_INFO("Set device mute state to %s", mute ? "TRUE" : "FALSE");
+
+	cb_data->action =
+		gupnp_service_proxy_begin_action(cb_data->proxy, "SetMute",
+						 prv_simple_call_cb, cb_data,
+						 "InstanceID", G_TYPE_INT, 0,
+						 "Channel",
+						 G_TYPE_STRING, "Master",
+						 "DesiredMute",
+						 G_TYPE_BOOLEAN, mute,
+						 NULL);
+}
+
 static GVariant *prv_get_rate_value_from_double(GVariant *params,
 						gchar **upnp_rate,
 						dlr_async_task_t *cb_data)
@@ -2024,7 +2053,8 @@ void dlr_device_set_prop(dlr_device_t *device, dlr_task_t *task,
 		goto exit;
 	}
 
-	if (g_strcmp0(set_prop->prop_name, DLR_INTERFACE_PROP_VOLUME) != 0) {
+	if ((g_strcmp0(set_prop->prop_name, DLR_INTERFACE_PROP_VOLUME) != 0) &&
+	    (g_strcmp0(set_prop->prop_name, DLR_INTERFACE_PROP_MUTE) != 0)) {
 		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
 					     DLEYNA_ERROR_UNKNOWN_PROPERTY,
 					     "Property %s not managed for setting",
@@ -2043,7 +2073,11 @@ void dlr_device_set_prop(dlr_device_t *device, dlr_task_t *task,
 	g_object_add_weak_pointer((G_OBJECT(context->service_proxies.rc_proxy)),
 				  (gpointer *)&cb_data->proxy);
 
-	prv_set_volume(cb_data, set_prop->params);
+	if (g_strcmp0(set_prop->prop_name, DLR_INTERFACE_PROP_MUTE) == 0)
+		prv_set_mute(cb_data, set_prop->params);
+	else
+		prv_set_volume(cb_data, set_prop->params);
+
 	return;
 
 exit:
