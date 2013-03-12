@@ -245,6 +245,8 @@ static const gchar g_server_introspection[] =
 	"       access='read'/>"
 	"    <property type='u' name='"DLR_INTERFACE_PROP_NUMBER_OF_TRACKS"'"
 	"       access='read'/>"
+	"    <property type='b' name='"DLR_INTERFACE_PROP_MUTE"'"
+	"       access='readwrite'/>"
 	"  </interface>"
 	"  <interface name='"DLEYNA_INTERFACE_PUSH_HOST"'>"
 	"    <method name='"DLR_INTERFACE_HOST_FILE"'>"

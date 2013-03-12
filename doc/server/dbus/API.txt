@@ -252,6 +252,8 @@ interface.  The main points of interest are noted below:
 |------------------------------------------------------------------------------|
 | NumberOfTracks      |    u   | m  | the number of tracks in the currently    |
 |                     |        |    | selected media.                          |
+| Mute                |    b   | o  | the mute setting of the master audio     |
+|                     |        |    | channel.                                 |
 -------------------------------------------------------------------------------|
 
 - A new method has been added, it is described below:
