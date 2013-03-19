@@ -93,6 +93,7 @@ static void prv_dlr_task_delete(dlr_task_t *task)
 		break;
 	case DLR_TASK_OPEN_URI:
 		g_free(task->ut.open_uri.uri);
+		g_free(task->ut.open_uri.metadata);
 		break;
 	case DLR_TASK_HOST_URI:
 	case DLR_TASK_REMOVE_URI:
@@ -254,6 +255,24 @@ dlr_task_t *dlr_task_open_uri_new(dleyna_connector_msg_id_t invocation,
 
 	g_variant_get(parameters, "(s)", &task->ut.open_uri.uri);
 	g_strstrip(task->ut.open_uri.uri);
+
+	task->ut.open_uri.metadata = NULL;
+
+	return task;
+}
+
+dlr_task_t *dlr_task_open_uri_ex_new(dleyna_connector_msg_id_t invocation,
+				     const gchar *path, GVariant *parameters)
+{
+	dlr_task_t *task;
+
+	task = prv_device_task_new(DLR_TASK_OPEN_URI, invocation, path,
+				   NULL);
+
+	g_variant_get(parameters, "(ss)",
+		      &task->ut.open_uri.uri, &task->ut.open_uri.metadata);
+	g_strstrip(task->ut.open_uri.uri);
+	g_strstrip(task->ut.open_uri.metadata);
 
 	return task;
 }
