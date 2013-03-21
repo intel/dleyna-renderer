@@ -14,7 +14,7 @@ object.  It can be used to retrieve a list of the DMRs on the local
 area network.  It is also used to perform certain server independent
 tasks.
 
-2. Server objects.  One separate object is exposed for each DMR
+2. Renderer objects.  One separate object is exposed for each DMR
 available on the LAN.  These objects expose interfaces that allow
 clients to retrieve information about the renderers, to manipulate
 them and to push content to them.
@@ -80,7 +80,7 @@ Is generated whenever a DMR is shutdown.  The signal contains the path
 of the server which has just been shutdown.
 
 
-The Server Objects:
+The Renderer Objects:
 ------------------
 
 Dleyna-renderer-service exposes a separate d-Bus object for each DMR it
@@ -95,7 +95,7 @@ URL, to play, pause and stop, etc.
 
 3. They can be used to implement two box push.
 
-Each server object exposes three separate interfaces:
+Each renderer object exposes three separate interfaces:
 org.mpris.MediaPlayer2, org.mpris.MediaPlayer2.Player and
 com.intel.dLeynaRenderer.PushHost.
 
@@ -234,7 +234,7 @@ interface.  The main points of interest are noted below:
   path can be specified as its value.
 
 - PropertiesChanged signals are emitted via the org.freedesktop.DBus.Properties
-  interface of a server object instance when org.mpris.MediaPlayer2.Player
+  interface of a renderer object instance when org.mpris.MediaPlayer2.Player
   interface properties value change.
 
 - Some new properties have been added, they are described below:
@@ -247,12 +247,13 @@ interface.  The main points of interest are noted below:
 |                     |        |    | the Rate property with a value that will |
 |                     |        |    | be accepted by the DMR.                  |
 |------------------------------------------------------------------------------|
-| CurrentTrack        |    u   | m  | The the sequence number of the currently |
+| CurrentTrack        |    u   | m  | The sequence number of the currently     |
 |                     |        |    | selected track.                          |
 |------------------------------------------------------------------------------|
-| NumberOfTracks      |    u   | m  | the number of tracks in the currently    |
+| NumberOfTracks      |    u   | m  | The number of tracks in the currently    |
 |                     |        |    | selected media.                          |
-| Mute                |    b   | o  | the mute setting of the master audio     |
+|------------------------------------------------------------------------------|
+| Mute                |    b   | o  | The mute setting of the master audio     |
 |                     |        |    | channel.                                 |
 -------------------------------------------------------------------------------|
 
@@ -305,7 +306,7 @@ this server.  As only one instance of dleyna-renderer-service runs at
 any one time (well currently only one can run per user session) we
 avoid the proliferation of web servers.  These push APIs are provided
 by the com.intel.dLeynaRenderer.PushHost interface which is
-implemented by all renderer server objects.
+implemented by all renderer objects.
 
 com.intel.dLeynaRenderer.PushHost contains two methods which are
 described in below.

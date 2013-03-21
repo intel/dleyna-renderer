@@ -11,11 +11,11 @@ TODO
 Working with the source code repository
 ---------------------------------------
 
-dleyna-server can be downloaded, compiled and installed as
+dleyna-renderer can be downloaded, compiled and installed as
 follows:
 
    Clone repository
-     # git clone git://github.com/01org/dleyna-server.git
+     # git clone git://github.com/01org/dleyna-renderer.git
      # cd dleyna-server
 
    Configure and build
