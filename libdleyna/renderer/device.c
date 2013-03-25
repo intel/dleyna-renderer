@@ -734,7 +734,7 @@ dlr_device_t *dlr_device_new(
 			const dleyna_connector_dispatch_cb_t *dispatch_table,
 			const dleyna_task_queue_key_t *queue_id)
 {
-	dlr_device_t *dev = g_new0(dlr_device_t, 1);
+	dlr_device_t *dev;
 	prv_new_device_ct_t *priv_t;
 	gchar *new_path;
 	dlr_device_context_t *context;
