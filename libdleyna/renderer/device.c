@@ -1409,7 +1409,7 @@ static void prv_rc_last_change_cb(GUPnPServiceProxy *proxy,
 	GVariantBuilder *changed_props_vb;
 	GVariant *changed_props;
 	GVariant *val;
-	guint device_volume;
+	guint dev_volume = G_MAXUINT;
 	double mpris_volume;
 	guint mute = G_MAXUINT;
 
@@ -1419,7 +1419,7 @@ static void prv_rc_last_change_cb(GUPnPServiceProxy *proxy,
 		    parser, 0,
 		    g_value_get_string(value),
 		    NULL,
-		    "Volume", G_TYPE_UINT, &device_volume,
+		    "Volume", G_TYPE_UINT, &dev_volume,
 		    "Mute", G_TYPE_UINT, &mute,
 		    NULL))
 		goto on_error;
@@ -1432,11 +1432,13 @@ static void prv_rc_last_change_cb(GUPnPServiceProxy *proxy,
 
 	changed_props_vb = g_variant_builder_new(G_VARIANT_TYPE("a{sv}"));
 
-	mpris_volume = (double)device_volume / (double)device->max_volume;
-	val = g_variant_ref_sink(g_variant_new_double(mpris_volume));
-	prv_change_props(device->props.player_props,
-			 DLR_INTERFACE_PROP_VOLUME, val,
-			 changed_props_vb);
+	if (dev_volume != G_MAXUINT) {
+		mpris_volume = (double)dev_volume / (double)device->max_volume;
+		val = g_variant_ref_sink(g_variant_new_double(mpris_volume));
+		prv_change_props(device->props.player_props,
+				 DLR_INTERFACE_PROP_VOLUME, val,
+				 changed_props_vb);
+	}
 
 	if (mute != G_MAXUINT) {
 		val = g_variant_ref_sink(
