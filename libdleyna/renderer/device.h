@@ -73,7 +73,11 @@ struct dlr_device_t_ {
 	guint timeout_id;
 	guint max_volume;
 	GPtrArray *transport_play_speeds;
+	GPtrArray *dlna_transport_play_speeds;
+	GVariant *mpris_transport_play_speeds;
 	gchar *rate;
+	double min_rate;
+	double max_rate;
 };
 
 dlr_device_t *dlr_device_new(
