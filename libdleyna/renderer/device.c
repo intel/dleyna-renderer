@@ -23,6 +23,7 @@
 
 #include <string.h>
 #include <math.h>
+#include <stdlib.h>
 
 #include <libgupnp/gupnp-control-point.h>
 #include <libgupnp-av/gupnp-av.h>
@@ -66,6 +67,16 @@ static void prv_rc_last_change_cb(GUPnPServiceProxy *proxy,
 				  gpointer user_data);
 
 static void prv_props_update(dlr_device_t *device, dlr_task_t *task);
+
+static void prv_get_rates_values(GList *allowed_tp_speeds,
+				 GVariant **mpris_tp_speeds,
+				 GPtrArray **upnp_tp_speeds,
+				 double *min_rate, double *max_rate);
+
+static void prv_add_player_speed_props(GHashTable *player_props,
+				       double min_rate, double max_rate,
+				       GVariant *mpris_transport_play_speeds,
+				       GVariantBuilder *changed_props_vb);
 
 static void prv_unref_variant(gpointer variant)
 {
@@ -369,6 +380,10 @@ void dlr_device_delete(void *device)
 
 		if (dev->transport_play_speeds != NULL)
 			g_ptr_array_free(dev->transport_play_speeds, TRUE);
+		if (dev->dlna_transport_play_speeds != NULL)
+			g_ptr_array_free(dev->dlna_transport_play_speeds, TRUE);
+		if (dev->mpris_transport_play_speeds)
+			g_variant_unref(dev->mpris_transport_play_speeds);
 		g_free(dev->rate);
 		g_free(dev);
 	}
@@ -970,6 +985,45 @@ on_error:
 	return retval;
 }
 
+static void prv_add_dlna_speeds(dlr_device_t *device,
+				gchar **dlna_speeds,
+				GVariantBuilder *changed_props_vb)
+{
+	GList *allowed_tp_speeds = NULL;
+	double min_rate = 0;
+	double max_rate = 0;
+	GVariant *mpris_tp_speeds = NULL;
+	unsigned int i = 0;
+	gchar *speed;
+
+	if (dlna_speeds == NULL)
+		goto exit;
+
+	allowed_tp_speeds = g_list_append(allowed_tp_speeds, g_strdup("1"));
+
+	while (dlna_speeds[i]) {
+		speed = g_strstrip(g_strdup(dlna_speeds[i]));
+		allowed_tp_speeds = g_list_append(allowed_tp_speeds, speed);
+		++i;
+	}
+
+	prv_get_rates_values(allowed_tp_speeds,
+			     &mpris_tp_speeds,
+			     &device->dlna_transport_play_speeds,
+			     &min_rate, &max_rate);
+
+	prv_add_player_speed_props(device->props.player_props,
+				   min_rate, max_rate,
+				   mpris_tp_speeds,
+				   changed_props_vb);
+
+exit:
+	if (allowed_tp_speeds != NULL)
+		g_list_free_full(allowed_tp_speeds, g_free);
+
+	return;
+}
+
 static void prv_add_actions(dlr_device_t *device,
 			    const gchar *actions,
 			    GVariantBuilder *changed_props_vb)
@@ -984,8 +1038,15 @@ static void prv_add_actions(dlr_device_t *device,
 	gboolean next = FALSE;
 	gboolean previous = FALSE;
 	GVariant *val;
+	GRegex *regex;
+	gchar *tmp_str;
+	gchar **speeds;
 
-	parts = g_strsplit(actions, ",", 0);
+	regex = g_regex_new("\\\\,", 0, 0, NULL);
+	tmp_str = g_regex_replace_literal(regex, actions, -1, 0, "*", 0, NULL);
+	parts = g_strsplit(tmp_str, ",", 0);
+	g_free(tmp_str);
+	g_regex_unref(regex);
 
 	true_val = g_variant_ref_sink(g_variant_new_boolean(TRUE));
 	false_val = g_variant_ref_sink(g_variant_new_boolean(FALSE));
@@ -1003,6 +1064,13 @@ static void prv_add_actions(dlr_device_t *device,
 			next = TRUE;
 		else if (!strcmp(parts[i], "Previous"))
 			previous = TRUE;
+		else if (!strncmp(parts[i], "X_DLNA_PS=",
+			 strlen("X_DLNA_PS="))) {
+			speeds = g_strsplit(parts[i] + strlen("X_DLNA_PS="),
+					    "*", 0);
+			prv_add_dlna_speeds(device, speeds, changed_props_vb);
+			g_strfreev(speeds);
+		}
 		++i;
 	}
 
@@ -1604,7 +1672,7 @@ static gint prv_compare_rationals(const gchar *a, const gchar *b)
 	return (a_numerator * b_denominator) - (b_numerator * a_denominator);
 }
 
-static void prv_get_rates_values(const GUPnPServiceStateVariableInfo *svi,
+static void prv_get_rates_values(GList *allowed_tp_speeds,
 				 GVariant **mpris_tp_speeds,
 				 GPtrArray **upnp_tp_speeds,
 				 double *min_rate, double *max_rate)
@@ -1616,12 +1684,12 @@ static void prv_get_rates_values(const GUPnPServiceStateVariableInfo *svi,
 	GVariantBuilder vb;
 	const double precision = 0.01;
 
-	if ((svi == NULL) || (svi->allowed_values == NULL))
+	if (allowed_tp_speeds == NULL)
 		goto exit;
 
 	g_variant_builder_init(&vb, G_VARIANT_TYPE("ad"));
 
-	list = svi->allowed_values;
+	list = allowed_tp_speeds;
 
 	min_rate_str = list->data;
 	max_rate_str = min_rate_str;
@@ -1666,6 +1734,7 @@ static void prv_get_av_service_states_values(GUPnPServiceProxy *av_proxy,
 	const GUPnPServiceStateVariableInfo *svi;
 	GUPnPServiceIntrospection *introspection;
 	GError *error = NULL;
+	GVariant *speeds = NULL;
 
 	introspection =	gupnp_service_info_get_introspection(
 						GUPNP_SERVICE_INFO(av_proxy),
@@ -1683,9 +1752,13 @@ static void prv_get_av_service_states_values(GUPnPServiceProxy *av_proxy,
 							introspection,
 							"TransportPlaySpeed");
 
-	prv_get_rates_values(svi,
-			     mpris_tp_speeds, upnp_tp_speeds,
-			     min_rate, max_rate);
+	if (svi) {
+		prv_get_rates_values(svi->allowed_values,
+				     &speeds, upnp_tp_speeds,
+				     min_rate, max_rate);
+
+		*mpris_tp_speeds = g_variant_ref(speeds);
+	}
 
 	g_object_unref(introspection);
 
@@ -1786,6 +1859,35 @@ static void prv_update_device_props(GUPnPDeviceInfo *proxy, GHashTable *props)
 
 }
 
+static void prv_add_player_speed_props(GHashTable *player_props,
+				       double min_rate, double max_rate,
+				       GVariant *mpris_transport_play_speeds,
+				       GVariantBuilder *changed_props_vb)
+{
+	GVariant *val;
+
+	if (min_rate != 0) {
+		val = g_variant_ref_sink(g_variant_new_double(min_rate));
+		prv_change_props(player_props,
+				 DLR_INTERFACE_PROP_MINIMUM_RATE,
+				 val, changed_props_vb);
+	}
+
+	if (max_rate != 0) {
+		val = g_variant_ref_sink(g_variant_new_double(max_rate));
+		prv_change_props(player_props,
+				 DLR_INTERFACE_PROP_MAXIMUM_RATE,
+				 val, changed_props_vb);
+	}
+
+	if (mpris_transport_play_speeds != NULL) {
+		val = g_variant_ref_sink(mpris_transport_play_speeds);
+		prv_change_props(player_props,
+				 DLR_INTERFACE_PROP_TRANSPORT_PLAY_SPEEDS,
+				 val, changed_props_vb);
+	}
+}
+
 static void prv_props_update(dlr_device_t *device, dlr_task_t *task)
 {
 	GVariant *val;
@@ -1795,9 +1897,6 @@ static void prv_props_update(dlr_device_t *device, dlr_task_t *task)
 	dlr_props_t *props = &device->props;
 	GVariantBuilder *changed_props_vb;
 	GVariant *changed_props;
-	double min_rate = 0;
-	double max_rate = 0;
-	GVariant *mpris_transport_play_speeds = NULL;
 
 	context = dlr_device_get_context(device);
 
@@ -1831,35 +1930,19 @@ static void prv_props_update(dlr_device_t *device, dlr_task_t *task)
 
 	if (service_proxies->av_proxy)
 		prv_get_av_service_states_values(service_proxies->av_proxy,
-						 &mpris_transport_play_speeds,
-						 &device->transport_play_speeds,
-						 &min_rate,
-						 &max_rate);
+					&device->mpris_transport_play_speeds,
+					&device->transport_play_speeds,
+					&device->min_rate,
+					&device->max_rate);
 
 	if (service_proxies->rc_proxy)
 		prv_get_rc_service_states_values(service_proxies->rc_proxy,
 						 &device->max_volume);
 
-	if (min_rate != 0) {
-		val = g_variant_ref_sink(g_variant_new_double(min_rate));
-		prv_change_props(device->props.player_props,
-				 DLR_INTERFACE_PROP_MINIMUM_RATE, val,
-				 changed_props_vb);
-	}
-
-	if (max_rate != 0) {
-		val = g_variant_ref_sink(g_variant_new_double(max_rate));
-		prv_change_props(device->props.player_props,
-				 DLR_INTERFACE_PROP_MAXIMUM_RATE,
-				 val, changed_props_vb);
-	}
-
-	if (mpris_transport_play_speeds != NULL) {
-		val = g_variant_ref_sink(mpris_transport_play_speeds);
-		prv_change_props(device->props.player_props,
-				 DLR_INTERFACE_PROP_TRANSPORT_PLAY_SPEEDS,
-				 val, changed_props_vb);
-	}
+	prv_add_player_speed_props(device->props.player_props,
+				   device->min_rate, device->max_rate,
+				   device->mpris_transport_play_speeds,
+				   changed_props_vb);
 
 	prv_add_all_actions(device, changed_props_vb);
 	device->props.synced = TRUE;
@@ -1955,7 +2038,7 @@ static GVariant *prv_get_rate_value_from_double(GVariant *params,
 	GVariantIter iter;
 	double tps_value;
 	double mpris_rate;
-	GPtrArray *upnp_tp_speeds;
+	GPtrArray *tp_speeds;
 	int i;
 
 	tps = g_hash_table_lookup(cb_data->device->props.player_props,
@@ -1970,7 +2053,10 @@ static GVariant *prv_get_rate_value_from_double(GVariant *params,
 
 	mpris_rate = g_variant_get_double(params);
 
-	upnp_tp_speeds = cb_data->device->transport_play_speeds;
+	if (cb_data->device->dlna_transport_play_speeds != NULL)
+		tp_speeds = cb_data->device->dlna_transport_play_speeds;
+	else
+		tp_speeds = cb_data->device->transport_play_speeds;
 
 	i = 0;
 
@@ -1981,7 +2067,7 @@ static GVariant *prv_get_rate_value_from_double(GVariant *params,
 			val = g_variant_ref_sink(
 				g_variant_new_double(tps_value));
 
-			*upnp_rate = g_ptr_array_index(upnp_tp_speeds, i);
+			*upnp_rate = g_ptr_array_index(tp_speeds, i);
 
 			break;
 		}
@@ -2002,6 +2088,8 @@ exit:
 
 static void prv_set_rate(GVariant *params, dlr_async_task_t *cb_data)
 {
+	GVariantBuilder *changed_props_vb;
+	GVariant *changed_props;
 	GVariant *val;
 	gchar *rate;
 
@@ -2018,14 +2106,26 @@ static void prv_set_rate(GVariant *params, dlr_async_task_t *cb_data)
 	if (val == NULL)
 		goto exit;
 
+	DLEYNA_LOG_INFO("Set device rate to %s", rate);
+
+	if (!strcmp(cb_data->device->rate, rate))
+		goto exit;
+
 	g_free(cb_data->device->rate);
 	cb_data->device->rate = g_strdup(rate);
 
-	DLEYNA_LOG_INFO("Set device rate to %s", cb_data->device->rate);
+	changed_props_vb = g_variant_builder_new(G_VARIANT_TYPE("a{sv}"));
 
 	prv_change_props(cb_data->device->props.player_props,
-			 DLR_INTERFACE_PROP_RATE, val, NULL);
+			 DLR_INTERFACE_PROP_RATE, val, changed_props_vb);
 
+	changed_props = g_variant_ref_sink(
+				g_variant_builder_end(changed_props_vb));
+	prv_emit_signal_properties_changed(cb_data->device,
+					   DLR_INTERFACE_PLAYER,
+					   changed_props);
+	g_variant_unref(changed_props);
+	g_variant_builder_unref(changed_props_vb);
 exit:
 
 	return;
@@ -2260,6 +2360,42 @@ void dlr_device_previous(dlr_device_t *device, dlr_task_t *task,
 	prv_simple_command(device, task, "Previous", cb);
 }
 
+static void prv_reset_transport_speed_props(dlr_device_t *device)
+{
+	GVariantBuilder *changed_props_vb;
+	GVariant *changed_props;
+	GVariant *val;
+
+	changed_props_vb = g_variant_builder_new(G_VARIANT_TYPE("a{sv}"));
+
+	if (device->dlna_transport_play_speeds != NULL) {
+		g_ptr_array_free(device->dlna_transport_play_speeds, TRUE);
+		device->dlna_transport_play_speeds = NULL;
+	}
+
+	prv_add_player_speed_props(device->props.player_props,
+				   device->min_rate, device->max_rate,
+				   device->mpris_transport_play_speeds,
+				   changed_props_vb);
+
+	g_free(device->rate);
+	device->rate = g_strdup("1");
+
+	val = g_variant_ref_sink(g_variant_new_double(
+				 prv_map_transport_speed(device->rate)));
+	prv_change_props(device->props.player_props,
+			 DLR_INTERFACE_PROP_RATE, val,
+			 changed_props_vb);
+
+	changed_props = g_variant_ref_sink(
+				g_variant_builder_end(changed_props_vb));
+	prv_emit_signal_properties_changed(device,
+					   DLR_INTERFACE_PLAYER,
+					   changed_props);
+	g_variant_unref(changed_props);
+	g_variant_builder_unref(changed_props_vb);
+}
+
 void dlr_device_open_uri(dlr_device_t *device, dlr_task_t *task,
 			 dlr_upnp_task_complete_t cb)
 {
@@ -2270,6 +2406,8 @@ void dlr_device_open_uri(dlr_device_t *device, dlr_task_t *task,
 
 	DLEYNA_LOG_INFO("URI: %s", open_uri_data->uri);
 	DLEYNA_LOG_INFO("METADATA: %s", metadata ? metadata : "Not provided");
+
+	prv_reset_transport_speed_props(device);
 
 	context = dlr_device_get_context(device);
 	cb_data->cb = cb;
