@@ -51,6 +51,7 @@
 
 #define DLR_INTERFACE_GET_VERSION "GetVersion"
 #define DLR_INTERFACE_GET_SERVERS "GetServers"
+#define DLR_INTERFACE_RESCAN "Rescan"
 #define DLR_INTERFACE_RELEASE "Release"
 
 #define DLR_INTERFACE_FOUND_SERVER "FoundServer"
@@ -122,6 +123,8 @@ static const gchar g_root_introspection[] =
 	"    <method name='"DLR_INTERFACE_GET_SERVERS"'>"
 	"      <arg type='as' name='"DLR_INTERFACE_SERVERS"'"
 	"           direction='out'/>"
+	"    </method>"
+	"    <method name='"DLR_INTERFACE_RESCAN"'>"
 	"    </method>"
 	"    <signal name='"DLR_INTERFACE_FOUND_SERVER"'>"
 	"      <arg type='s' name='"DLR_INTERFACE_PATH"'/>"
@@ -593,6 +596,21 @@ static void prv_add_task(dlr_task_t *task, const gchar *source,
 	dleyna_task_queue_add_task(queue_id, &task->atom);
 }
 
+static void prv_dlr_rescan(gpointer browser, gpointer user_data)
+{
+	GSSDPResourceBrowser *bro;
+
+	if (browser == NULL)
+		goto finished;
+
+	bro = browser;
+	if (gssdp_resource_browser_rescan(bro) == FALSE)
+		DLEYNA_LOG_WARNING("rescan failed!");
+
+finished:
+	return;
+}
+
 static void prv_dlr_method_call(dleyna_connector_id_t conn,
 				const gchar *sender, const gchar *object,
 				const gchar *interface,
@@ -607,7 +625,13 @@ static void prv_dlr_method_call(dleyna_connector_id_t conn,
 		g_context.connector->unwatch_client(sender);
 		prv_remove_client(sender);
 		g_context.connector->return_response(invocation, NULL);
-	} else {
+	} else if (!strcmp(method, DLR_INTERFACE_RESCAN)) {
+		dlr_upnp_t *upnp = dlr_renderer_service_get_upnp();
+		g_slist_foreach(dlr_upnp_get_browsers(upnp),
+				prv_dlr_rescan, NULL);
+
+		g_context.connector->return_response(invocation, NULL);
+	}  else {
 		if (!strcmp(method, DLR_INTERFACE_GET_VERSION))
 			task = dlr_task_get_version_new(invocation);
 		else if (!strcmp(method, DLR_INTERFACE_GET_SERVERS))
