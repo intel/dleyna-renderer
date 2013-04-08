@@ -32,6 +32,7 @@
 enum dlr_task_type_t_ {
 	DLR_TASK_GET_VERSION,
 	DLR_TASK_GET_SERVERS,
+	DLR_TASK_RESCAN,
 	DLR_TASK_RAISE,
 	DLR_TASK_QUIT,
 	DLR_TASK_SET_PROP,
@@ -108,6 +109,8 @@ struct dlr_task_t_ {
 		dlr_task_seek_t seek;
 	} ut;
 };
+
+dlr_task_t *dlr_task_rescan_new(dleyna_connector_msg_id_t invocation);
 
 dlr_task_t *dlr_task_get_version_new(dleyna_connector_msg_id_t invocation);
 
