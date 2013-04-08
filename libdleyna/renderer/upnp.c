@@ -813,3 +813,10 @@ void dlr_upnp_unsubscribe(dlr_upnp_t *upnp)
 
 	DLEYNA_LOG_DEBUG("Exit");
 }
+
+void dlr_upnp_rescan(dlr_upnp_t *upnp)
+{
+	DLEYNA_LOG_DEBUG("re-scanning control points");
+
+	gupnp_context_manager_rescan_control_points(upnp->context_manager);
+}
