@@ -51,6 +51,7 @@
 
 #define DLR_INTERFACE_GET_VERSION "GetVersion"
 #define DLR_INTERFACE_GET_SERVERS "GetServers"
+#define DLR_INTERFACE_RESCAN "Rescan"
 #define DLR_INTERFACE_RELEASE "Release"
 
 #define DLR_INTERFACE_FOUND_SERVER "FoundServer"
@@ -122,6 +123,8 @@ static const gchar g_root_introspection[] =
 	"    <method name='"DLR_INTERFACE_GET_SERVERS"'>"
 	"      <arg type='as' name='"DLR_INTERFACE_SERVERS"'"
 	"           direction='out'/>"
+	"    </method>"
+	"    <method name='"DLR_INTERFACE_RESCAN"'>"
 	"    </method>"
 	"    <signal name='"DLR_INTERFACE_FOUND_SERVER"'>"
 	"      <arg type='s' name='"DLR_INTERFACE_PATH"'/>"
@@ -392,6 +395,11 @@ static void prv_process_sync_task(dlr_task_t *task)
 		dlr_task_complete(task);
 		dleyna_task_queue_task_completed(task->atom.queue_id);
 		break;
+	case DLR_TASK_RESCAN:
+		dlr_upnp_rescan(g_context.upnp);
+		dlr_task_complete(task);
+		dleyna_task_queue_task_completed(task->atom.queue_id);
+		break;
 	case DLR_TASK_RAISE:
 	case DLR_TASK_QUIT:
 		error = g_error_new(DLEYNA_SERVER_ERROR,
@@ -612,6 +620,8 @@ static void prv_dlr_method_call(dleyna_connector_id_t conn,
 			task = dlr_task_get_version_new(invocation);
 		else if (!strcmp(method, DLR_INTERFACE_GET_SERVERS))
 			task = dlr_task_get_servers_new(invocation);
+		else if (!strcmp(method, DLR_INTERFACE_RESCAN))
+			task = dlr_task_rescan_new(invocation);
 		else
 			goto finished;
 
