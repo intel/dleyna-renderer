@@ -26,6 +26,18 @@
 #include "async.h"
 #include "server.h"
 
+dlr_task_t *dlr_task_rescan_new(dleyna_connector_msg_id_t invocation)
+{
+	dlr_task_t *task = g_new0(dlr_task_t, 1);
+
+	task->type = DLR_TASK_RESCAN;
+	task->invocation = invocation;
+	task->result_format = "";
+	task->synchronous = TRUE;
+
+	return task;
+}
+
 dlr_task_t *dlr_task_get_version_new(dleyna_connector_msg_id_t invocation)
 {
 	dlr_task_t *task = g_new0(dlr_task_t, 1);
