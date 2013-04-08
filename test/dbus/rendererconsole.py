@@ -166,6 +166,8 @@ class Manager(object):
     def release(self):
         self.__manager.Release()
 
+    def rescan(self):
+        self.__manager.Rescan()
 
 if __name__ == "__main__":
 
