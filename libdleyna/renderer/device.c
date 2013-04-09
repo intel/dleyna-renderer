@@ -652,6 +652,8 @@ static void prv_get_protocol_info_cb(GUPnPServiceProxy *proxy,
 
 	DLEYNA_LOG_DEBUG("Enter");
 
+	priv_t->dev->construct_step++;
+
 	if (!gupnp_service_proxy_end_action(proxy, action, &error, "Sink",
 					    G_TYPE_STRING, &result, NULL)) {
 		DLEYNA_LOG_WARNING("GetProtocolInfo operation failed: %s",
@@ -694,6 +696,7 @@ static GUPnPServiceProxyAction *prv_subscribe(dleyna_service_task_t *task,
 
 	device = (dlr_device_t *)dleyna_service_task_get_user_data(task);
 
+	device->construct_step++;
 	prv_device_subscribe_context(device);
 
 	*failed = FALSE;
@@ -718,6 +721,7 @@ static GUPnPServiceProxyAction *prv_declare(dleyna_service_task_t *task,
 
 	priv_t = (prv_new_device_ct_t *)dleyna_service_task_get_user_data(task);
 	device = priv_t->dev;
+	device->construct_step++;
 
 	table = priv_t->dispatch_table;
 
@@ -742,6 +746,43 @@ DLEYNA_LOG_DEBUG("Exit");
 	return NULL;
 }
 
+void dlr_device_construct(
+			dlr_device_t *dev,
+			dlr_device_context_t *context,
+			dleyna_connector_id_t connection,
+			const dleyna_connector_dispatch_cb_t *dispatch_table,
+			const dleyna_task_queue_key_t *queue_id)
+{
+	prv_new_device_ct_t *priv_t;
+	GUPnPServiceProxy *s_proxy;
+
+	DLEYNA_LOG_DEBUG("Current step: %d", dev->construct_step);
+
+	priv_t = g_new0(prv_new_device_ct_t, 1);
+
+	priv_t->dev = dev;
+	priv_t->dispatch_table = dispatch_table;
+
+	s_proxy = context->service_proxies.cm_proxy;
+
+	if (dev->construct_step < 1)
+		dleyna_service_task_add(queue_id, prv_get_protocol_info,
+					s_proxy, prv_get_protocol_info_cb,
+					NULL, priv_t);
+
+	/* The following task should always be completed */
+	dleyna_service_task_add(queue_id, prv_subscribe, s_proxy,
+				NULL, NULL, dev);
+
+	if (dev->construct_step < 3)
+		dleyna_service_task_add(queue_id, prv_declare, s_proxy,
+					NULL, g_free, priv_t);
+
+	dleyna_task_queue_start(queue_id);
+
+	DLEYNA_LOG_DEBUG("Exit");
+}
+
 dlr_device_t *dlr_device_new(
 			dleyna_connector_id_t connection,
 			GUPnPDeviceProxy *proxy,
@@ -751,10 +792,8 @@ dlr_device_t *dlr_device_new(
 			const dleyna_task_queue_key_t *queue_id)
 {
 	dlr_device_t *dev;
-	prv_new_device_ct_t *priv_t;
 	gchar *new_path;
 	dlr_device_context_t *context;
-	GUPnPServiceProxy *s_proxy;
 
 	DLEYNA_LOG_DEBUG("New Device on %s", ip_address);
 
@@ -762,33 +801,20 @@ dlr_device_t *dlr_device_new(
 	DLEYNA_LOG_DEBUG("Server Path %s", new_path);
 
 	dev = g_new0(dlr_device_t, 1);
-	priv_t = g_new0(prv_new_device_ct_t, 1);
 
 	dev->connection = connection;
 	dev->contexts = g_ptr_array_new_with_free_func(prv_dlr_context_delete);
 	dev->path = new_path;
 	dev->rate = g_strdup("1");
 
-	priv_t->dev = dev;
-	priv_t->dispatch_table = dispatch_table;
-
 	prv_props_init(&dev->props);
 
 	prv_device_append_new_context(dev, ip_address, proxy);
 
 	context = dlr_device_get_context(dev);
-	s_proxy = context->service_proxies.cm_proxy;
 
-	dleyna_service_task_add(queue_id, prv_get_protocol_info, s_proxy,
-				prv_get_protocol_info_cb, NULL, priv_t);
-
-	dleyna_service_task_add(queue_id, prv_subscribe, s_proxy,
-				NULL, NULL, dev);
-
-	dleyna_service_task_add(queue_id, prv_declare, s_proxy,
-				NULL, g_free, priv_t);
-
-	dleyna_task_queue_start(queue_id);
+	dlr_device_construct(dev, context, connection,
+			     dispatch_table, queue_id);
 
 	DLEYNA_LOG_DEBUG("Exit");
 
