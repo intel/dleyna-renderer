@@ -78,7 +78,15 @@ struct dlr_device_t_ {
 	gchar *rate;
 	double min_rate;
 	double max_rate;
+	guint construct_step;
 };
+
+void dlr_device_construct(
+			dlr_device_t *dev,
+			dlr_device_context_t *context,
+			dleyna_connector_id_t connection,
+			const dleyna_connector_dispatch_cb_t *dispatch_table,
+			const dleyna_task_queue_key_t *queue_id);
 
 dlr_device_t *dlr_device_new(
 			dleyna_connector_id_t connection,
