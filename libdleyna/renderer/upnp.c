@@ -47,6 +47,7 @@ struct dlr_upnp_t_ {
 	GHashTable *server_uc_map;
 	guint counter;
 	dlr_host_service_t *host_service;
+	GSList *browsers;
 };
 
 /* Private structure used in service task */
@@ -292,6 +293,7 @@ static void prv_on_context_available(GUPnPContextManager *context_manager,
 	g_signal_connect(cp, "device-proxy-unavailable",
 			 G_CALLBACK(prv_server_unavailable_cb), upnp);
 
+	upnp->browsers = g_slist_prepend(upnp->browsers, cp);
 	gssdp_resource_browser_set_active(GSSDP_RESOURCE_BROWSER(cp), TRUE);
 	gupnp_context_manager_manage_control_point(upnp->context_manager, cp);
 	g_object_unref(cp);
@@ -337,6 +339,11 @@ void dlr_upnp_delete(dlr_upnp_t *upnp)
 
 		g_free(upnp);
 	}
+}
+
+GSList *dlr_upnp_get_browsers(dlr_upnp_t *upnp)
+{
+	return upnp->browsers;
 }
 
 GVariant *dlr_upnp_get_server_ids(dlr_upnp_t *upnp)

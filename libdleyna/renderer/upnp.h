@@ -47,6 +47,8 @@ dlr_upnp_t *dlr_upnp_new(dleyna_connector_id_t connection,
 
 void dlr_upnp_delete(dlr_upnp_t *upnp);
 
+GSList *dlr_upnp_get_browsers(dlr_upnp_t *upnp);
+
 GVariant *dlr_upnp_get_server_ids(dlr_upnp_t *upnp);
 
 GHashTable *dlr_upnp_get_server_udn_map(dlr_upnp_t *upnp);
