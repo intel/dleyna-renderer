@@ -631,13 +631,15 @@ static void prv_get_protocol_info_cb(GUPnPServiceProxy *proxy,
 				     gpointer user_data)
 {
 	gchar *result = NULL;
+	gboolean end;
 	GError *error = NULL;
 	prv_new_device_ct_t *priv_t = (prv_new_device_ct_t *)user_data;
 
 	DLEYNA_LOG_DEBUG("Enter");
 
-	if (!gupnp_service_proxy_end_action(proxy, action, &error, "Sink",
-					    G_TYPE_STRING, &result, NULL)) {
+	end = gupnp_service_proxy_end_action(proxy, action, &error, "Sink",
+					     G_TYPE_STRING, &result, NULL);
+	if (!end || (result == NULL)) {
 		DLEYNA_LOG_WARNING("GetProtocolInfo operation failed: %s",
 				   error->message);
 		goto on_error;
@@ -1480,16 +1482,17 @@ static void prv_get_position_info_cb(GUPnPServiceProxy *proxy,
 				     gpointer user_data)
 {
 	gchar *rel_pos = NULL;
+	gboolean end;
 	dlr_async_task_t *cb_data = user_data;
 	GError *upnp_error = NULL;
 	dlr_device_data_t *device_data = cb_data->private;
 	GVariantBuilder *changed_props_vb;
 	GVariant *changed_props;
 
-	if (!gupnp_service_proxy_end_action(cb_data->proxy, cb_data->action,
-					    &upnp_error,
-					    "RelTime",
-					    G_TYPE_STRING, &rel_pos, NULL)) {
+	end = gupnp_service_proxy_end_action(cb_data->proxy, cb_data->action,
+					     &upnp_error, "RelTime",
+					     G_TYPE_STRING, &rel_pos, NULL);
+	if (!end || (rel_pos == NULL)) {
 		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
 					     DLEYNA_ERROR_OPERATION_FAILED,
 					     "GetPositionInfo operation failed: %s",
