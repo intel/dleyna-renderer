@@ -647,7 +647,7 @@ static void prv_get_protocol_info_cb(GUPnPServiceProxy *proxy,
 				     gpointer user_data)
 {
 	gchar *result = NULL;
-	gchar *message;
+	const gchar *message;
 	gboolean end;
 	GError *error = NULL;
 	prv_new_device_ct_t *priv_t = (prv_new_device_ct_t *)user_data;
@@ -1560,7 +1560,7 @@ static void prv_get_position_info_cb(GUPnPServiceProxy *proxy,
 				     gpointer user_data)
 {
 	gchar *rel_pos = NULL;
-	gchar *message;
+	const gchar *message;
 	gboolean end;
 	dlr_async_task_t *cb_data = user_data;
 	GError *error = NULL;
