@@ -647,7 +647,6 @@ static void prv_get_protocol_info_cb(GUPnPServiceProxy *proxy,
 				     gpointer user_data)
 {
 	gchar *result = NULL;
-	const gchar *message;
 	gboolean end;
 	GError *error = NULL;
 	prv_new_device_ct_t *priv_t = (prv_new_device_ct_t *)user_data;
@@ -657,9 +656,9 @@ static void prv_get_protocol_info_cb(GUPnPServiceProxy *proxy,
 	end = gupnp_service_proxy_end_action(proxy, action, &error, "Sink",
 					     G_TYPE_STRING, &result, NULL);
 	if (!end || (result == NULL)) {
-		message = (error != NULL) ? error->message : "Invalid result";
 		DLEYNA_LOG_WARNING("GetProtocolInfo operation failed: %s",
-				   message);
+				   ((error != NULL) ? error->message
+						    : "Invalid result"));
 		goto on_error;
 	}
 
