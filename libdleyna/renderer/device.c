@@ -2484,6 +2484,19 @@ void dlr_device_open_uri(dlr_device_t *device, dlr_task_t *task,
 	dlr_async_task_t *cb_data = (dlr_async_task_t *)task;
 	dlr_task_open_uri_t *open_uri_data = &task->ut.open_uri;
 	gchar *metadata = open_uri_data->metadata;
+	gchar *operation;
+	gchar *uri_type;
+	gchar *metadata_type;
+
+	if (task->type == DLR_TASK_OPEN_URI) {
+		operation = "SetAVTransportURI";
+		uri_type = "CurrentURI";
+		metadata_type = "CurrentURIMetaData";
+	} else {
+		operation = "SetNextAVTransportURI";
+		uri_type = "NextURI";
+		metadata_type = "NextURIMetaData";
+	}
 
 	DLEYNA_LOG_INFO("URI: %s", open_uri_data->uri);
 	DLEYNA_LOG_INFO("METADATA: %s", metadata ? metadata : "Not provided");
@@ -2503,13 +2516,13 @@ void dlr_device_open_uri(dlr_device_t *device, dlr_task_t *task,
 
 	cb_data->action =
 		gupnp_service_proxy_begin_action(cb_data->proxy,
-						 "SetAVTransportURI",
+						 operation,
 						 prv_open_uri_cb,
 						 cb_data,
 						 "InstanceID", G_TYPE_INT, 0,
-						 "CurrentURI", G_TYPE_STRING,
+						 uri_type, G_TYPE_STRING,
 						 open_uri_data->uri,
-						 "CurrentURIMetaData",
+						 metadata_type,
 						 G_TYPE_STRING,
 						 metadata ? metadata : "",
 						 NULL);
