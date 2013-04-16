@@ -146,6 +146,25 @@ class Manager(object):
         self.update_renderers()
         return self.__renderers
 
+    def renderer_from_name(self, friendly_name):
+        retval = None
+        for i in self.__manager.GetServers():
+            renderer = Renderer(i)
+            renderer_name = renderer.get_prop("FriendlyName").lower()
+            if renderer_name.find(friendly_name.lower()) != -1:
+                retval = renderer
+                break
+        return retval
+
+    def renderer_from_udn(self, udn):
+        retval = None
+        for i in self.__manager.GetServers():
+            renderer = Renderer(i)
+            if renderer.get_prop("UDN") == udn:
+                retval = renderer
+                break
+        return retval
+
     def renderers(self):
         self.update_renderers()
 
