@@ -100,4 +100,6 @@ void dlr_upnp_lost_client(dlr_upnp_t *upnp, const gchar *client_name);
 
 void dlr_upnp_unsubscribe(dlr_upnp_t *upnp);
 
+void dlr_upnp_rescan(dlr_upnp_t *upnp);
+
 #endif /* DLR_UPNP_H__ */
