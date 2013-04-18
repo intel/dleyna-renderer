@@ -103,7 +103,6 @@ static void prv_device_context_switch_end(gboolean cancelled, gpointer data)
 
 	DLEYNA_LOG_DEBUG("Enter");
 
-	g_hash_table_remove(priv_t->upnp->server_uc_map, priv_t->udn);
 	prv_device_new_free(priv_t);
 
 	DLEYNA_LOG_DEBUG("Exit");
