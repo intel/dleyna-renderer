@@ -278,6 +278,14 @@ interface, with an additional parameter Metadata to specify the DIDL-Lite XML
 description of the item to be opened.
 
 
+SeekByte(x Offset) -> void
+SetPositionByte(o TrackID, x Position) -> void
+
+Same as Seek and SetPosition but last parameter (Offset and Position) is not
+expressed in second but in byte, and allows to set the seekmode to respectively
+“REL_COUNT” and “ABS_COUNT” .
+
+
 org.mpris.MediaPlayer2.TrackList and org.mpris.MediaPlayer2.Playlists
 ---------------------------------------------------------------------
 Are not yet implemented.
