@@ -45,6 +45,7 @@ enum dlr_task_type_t_ {
 	DLR_TASK_NEXT,
 	DLR_TASK_PREVIOUS,
 	DLR_TASK_OPEN_URI,
+	DLR_TASK_OPEN_NEXT_URI,
 	DLR_TASK_SEEK,
 	DLR_TASK_SET_POSITION,
 	DLR_TASK_GOTO_TRACK,
@@ -161,6 +162,9 @@ dlr_task_t *dlr_task_open_uri_new(dleyna_connector_msg_id_t invocation,
 
 dlr_task_t *dlr_task_open_uri_ex_new(dleyna_connector_msg_id_t invocation,
 				     const gchar *path, GVariant *parameters);
+
+dlr_task_t *dlr_task_open_next_uri_new(dleyna_connector_msg_id_t invocation,
+				       const gchar *path, GVariant *parameters);
 
 dlr_task_t *dlr_task_host_uri_new(dleyna_connector_msg_id_t invocation,
 				  const gchar *path, const gchar *sender,
