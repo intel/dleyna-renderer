@@ -615,14 +615,13 @@ static void prv_dlr_method_call(dleyna_connector_id_t conn,
 		g_context.connector->unwatch_client(sender);
 		prv_remove_client(sender);
 		g_context.connector->return_response(invocation, NULL);
-	} else if (!strcmp(method, DLR_INTERFACE_RESCAN)) {
-		task = dlr_task_rescan_new(invocation);
-		prv_add_task(task, sender, DLR_RENDERER_SINK);
-	}  else {
+	} else {
 		if (!strcmp(method, DLR_INTERFACE_GET_VERSION))
 			task = dlr_task_get_version_new(invocation);
 		else if (!strcmp(method, DLR_INTERFACE_GET_SERVERS))
 			task = dlr_task_get_servers_new(invocation);
+		else if (!strcmp(method, DLR_INTERFACE_RESCAN))
+			task = dlr_task_rescan_new(invocation);
 		else
 			goto finished;
 
