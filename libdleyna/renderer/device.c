@@ -1072,6 +1072,8 @@ static void prv_add_actions(dlr_device_t *device,
 	gboolean play = FALSE;
 	gboolean ppause = FALSE;
 	gboolean seek = FALSE;
+	gboolean timeseek = FALSE;
+	gboolean byteseek = FALSE;
 	gboolean next = FALSE;
 	gboolean previous = FALSE;
 	GVariant *val;
@@ -1102,14 +1104,21 @@ static void prv_add_actions(dlr_device_t *device,
 		} else if (!strcmp(parts[i], "Previous")) {
 			previous = TRUE;
 		} else if (!strncmp(parts[i], "X_DLNA_PS=",
-			 strlen("X_DLNA_PS="))) {
+				    strlen("X_DLNA_PS="))) {
 			speeds = g_strsplit(parts[i] + strlen("X_DLNA_PS="),
 					    "*", 0);
 			prv_add_dlna_speeds(device, speeds, changed_props_vb);
 			g_strfreev(speeds);
+		} else if (!strcmp(parts[i], "X_DLNA_SeekTime")) {
+			timeseek = TRUE;
+		} else if (!strcmp(parts[i], "X_DLNA_SeekByte")) {
+			byteseek = TRUE;
 		}
 		++i;
 	}
+
+	if (!seek && (timeseek || byteseek))
+		DLEYNA_LOG_WARNING("Malformed Transport Action X_DLNA_Seek* provided but seek is missing")
 
 	g_variant_ref(false_val);
 	prv_change_props(device->props.player_props,
@@ -1128,10 +1137,22 @@ static void prv_add_actions(dlr_device_t *device,
 			 DLR_INTERFACE_PROP_CAN_PAUSE, val,
 			 changed_props_vb);
 
-	val = seek ? true_val : false_val;
+	val = seek && (timeseek || byteseek) ? true_val : false_val;
 	g_variant_ref(val);
 	prv_change_props(device->props.player_props,
 			 DLR_INTERFACE_PROP_CAN_SEEK, val,
+			 changed_props_vb);
+
+	val = seek && timeseek ? true_val : false_val;
+	g_variant_ref(val);
+	prv_change_props(device->props.player_props,
+			 DLR_INTERFACE_PROP_CAN_TIME_SEEK, val,
+			 changed_props_vb);
+
+	val = seek && byteseek ? true_val : false_val;
+	g_variant_ref(val);
+	prv_change_props(device->props.player_props,
+			 DLR_INTERFACE_PROP_CAN_BYTE_SEEK, val,
 			 changed_props_vb);
 
 	val = next ? true_val : false_val;
@@ -1243,6 +1264,19 @@ static void prv_add_reltime(dlr_device_t *device,
 	val = g_variant_ref_sink(g_variant_new_int64(pos));
 	prv_change_props(device->props.player_props,
 			 DLR_INTERFACE_PROP_POSITION, val,
+			 changed_props_vb);
+}
+
+static void prv_add_relcount(dlr_device_t *device,
+			    const gchar *relcount,
+			    GVariantBuilder *changed_props_vb)
+{
+	GVariant *val;
+	guint64 count = strtoll(relcount, NULL, 10);
+
+	val = g_variant_ref_sink(g_variant_new_uint64(count));
+	prv_change_props(device->props.player_props,
+			 DLR_INTERFACE_PROP_COUNTER_POSITION, val,
 			 changed_props_vb);
 }
 
@@ -1585,6 +1619,7 @@ static void prv_get_position_info_cb(GUPnPServiceProxy *proxy,
 				     gpointer user_data)
 {
 	gchar *rel_pos = NULL;
+	gchar *rel_cnt = NULL;
 	const gchar *message;
 	gboolean end;
 	dlr_async_task_t *cb_data = user_data;
@@ -1594,9 +1629,11 @@ static void prv_get_position_info_cb(GUPnPServiceProxy *proxy,
 	GVariant *changed_props;
 
 	end = gupnp_service_proxy_end_action(cb_data->proxy, cb_data->action,
-					     &error, "RelTime",
-					     G_TYPE_STRING, &rel_pos, NULL);
-	if (!end || (rel_pos == NULL)) {
+					     &error,
+					     "RelTime", G_TYPE_STRING, &rel_pos,
+					     "RelCount", G_TYPE_STRING,
+					     &rel_cnt, NULL);
+	if (!end || ((rel_pos == NULL) && (rel_cnt == NULL))) {
 		message = (error != NULL) ? error->message : "Invalid result";
 		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
 					     DLEYNA_ERROR_OPERATION_FAILED,
@@ -1610,6 +1647,10 @@ static void prv_get_position_info_cb(GUPnPServiceProxy *proxy,
 	g_strstrip(rel_pos);
 	prv_add_reltime(cb_data->device, rel_pos, changed_props_vb);
 	g_free(rel_pos);
+
+	g_strstrip(rel_cnt);
+	prv_add_relcount(cb_data->device, rel_cnt, changed_props_vb);
+	g_free(rel_cnt);
 
 	changed_props = g_variant_ref_sink(
 				g_variant_builder_end(changed_props_vb));
@@ -2255,7 +2296,9 @@ void dlr_device_get_prop(dlr_device_t *device, dlr_task_t *task,
 	if ((!strcmp(get_prop->interface_name, DLR_INTERFACE_PLAYER) ||
 	     !strcmp(get_prop->interface_name, "")) &&
 	    (!strcmp(task->ut.get_prop.prop_name,
-			DLR_INTERFACE_PROP_POSITION))) {
+			DLR_INTERFACE_PROP_POSITION) ||
+	     !strcmp(task->ut.get_prop.prop_name,
+			DLR_INTERFACE_PROP_COUNTER_POSITION))) {
 		/* Need to read the current position.  This property is not
 		   evented */
 
@@ -2556,8 +2599,10 @@ static void prv_device_set_position(dlr_device_t *device, dlr_task_t *task,
 
 	if (!strcmp(pos_type, "TRACK_NR"))
 		position = g_strdup_printf("%u", seek_data->track_number);
-	else
+	else if (g_strrstr(pos_type, "_TIME") != NULL)
 		position = prv_int64_to_duration(seek_data->position);
+	else
+		position = g_strdup_printf("%llu", seek_data->counter_position);
 
 	DLEYNA_LOG_INFO("set %s position : %s", pos_type, position);
 
@@ -2589,13 +2634,19 @@ static void prv_device_set_position(dlr_device_t *device, dlr_task_t *task,
 void dlr_device_seek(dlr_device_t *device, dlr_task_t *task,
 		     dlr_upnp_task_complete_t cb)
 {
-	prv_device_set_position(device, task,  "REL_TIME", cb);
+	if (task->type == DLR_TASK_SEEK)
+		prv_device_set_position(device, task,  "REL_TIME", cb);
+	else
+		prv_device_set_position(device, task,  "REL_COUNT", cb);
 }
 
 void dlr_device_set_position(dlr_device_t *device, dlr_task_t *task,
 			     dlr_upnp_task_complete_t cb)
 {
-	prv_device_set_position(device, task,  "ABS_TIME", cb);
+	if (task->type == DLR_TASK_SET_POSITION)
+		prv_device_set_position(device, task,  "ABS_TIME", cb);
+	else
+		prv_device_set_position(device, task,  "ABS_COUNT", cb);
 }
 
 void dlr_device_goto_track(dlr_device_t *device, dlr_task_t *task,
