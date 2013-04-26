@@ -79,6 +79,7 @@
 #define DLR_INTERFACE_VALUE "value"
 #define DLR_INTERFACE_OFFSET "offset"
 #define DLR_INTERFACE_POSITION "position"
+#define DLR_INTERFACE_COUNTER_POSITION "counter_position"
 #define DLR_INTERFACE_TRACKID "trackid"
 #define DLR_INTERFACE_TRACK_NUMBER "TrackNumber"
 
@@ -93,7 +94,9 @@
 #define DLR_INTERFACE_OPEN_URI "OpenUri"
 #define DLR_INTERFACE_OPEN_URI_EX "OpenUriEx"
 #define DLR_INTERFACE_SEEK "Seek"
+#define DLR_INTERFACE_SEEK_BYTE "SeekByte"
 #define DLR_INTERFACE_SET_POSITION "SetPosition"
+#define DLR_INTERFACE_SET_COUNTER_POSITION "SetCounterPosition"
 #define DLR_INTERFACE_GOTO_TRACK "GotoTrack"
 
 #define DLR_INTERFACE_CANCEL "Cancel"
@@ -213,10 +216,20 @@ static const gchar g_server_introspection[] =
 	"      <arg type='x' name='"DLR_INTERFACE_OFFSET"'"
 	"           direction='in'/>"
 	"    </method>"
+	"    <method name='"DLR_INTERFACE_SEEK_BYTE"'>"
+	"      <arg type='x' name='"DLR_INTERFACE_OFFSET"'"
+	"           direction='in'/>"
+	"    </method>"
 	"    <method name='"DLR_INTERFACE_SET_POSITION"'>"
 	"      <arg type='o' name='"DLR_INTERFACE_TRACKID"'"
 	"           direction='in'/>"
 	"      <arg type='x' name='"DLR_INTERFACE_POSITION"'"
+	"           direction='in'/>"
+	"    </method>"
+	"    <method name='"DLR_INTERFACE_SET_COUNTER_POSITION"'>"
+	"      <arg type='o' name='"DLR_INTERFACE_TRACKID"'"
+	"           direction='in'/>"
+	"      <arg type='x' name='"DLR_INTERFACE_COUNTER_POSITION"'"
 	"           direction='in'/>"
 	"    </method>"
 	"    <method name='"DLR_INTERFACE_GOTO_TRACK"'>"
@@ -249,6 +262,8 @@ static const gchar g_server_introspection[] =
 	"    <property type='b' name='"DLR_INTERFACE_PROP_CAN_PREVIOUS"'"
 	"       access='read'/>"
 	"    <property type='x' name='"DLR_INTERFACE_PROP_POSITION"'"
+	"       access='read'/>"
+	"    <property type='x' name='"DLR_INTERFACE_PROP_COUNTER_POSITION"'"
 	"       access='read'/>"
 	"    <property type='a{sv}' name='"DLR_INTERFACE_PROP_METADATA"'"
 	"       access='read'/>"
@@ -480,10 +495,12 @@ static void prv_process_async_task(dlr_task_t *task)
 				  prv_async_task_complete);
 		break;
 	case DLR_TASK_SEEK:
+	case DLR_TASK_SEEK_BYTE:
 		dlr_upnp_seek(g_context.upnp, task,
 			      prv_async_task_complete);
 		break;
 	case DLR_TASK_SET_POSITION:
+	case DLR_TASK_SET_COUNTER_POSITION:
 		dlr_upnp_set_position(g_context.upnp, task,
 				      prv_async_task_complete);
 		break;
@@ -765,9 +782,14 @@ static void prv_dlr_player_method_call(dleyna_connector_id_t conn,
 		task = dlr_task_open_uri_ex_new(invocation, object, parameters);
 	else if (!strcmp(method, DLR_INTERFACE_SEEK))
 		task = dlr_task_seek_new(invocation, object, parameters);
+	else if (!strcmp(method, DLR_INTERFACE_SEEK_BYTE))
+		task = dlr_task_seek_byte_new(invocation, object, parameters);
 	else if (!strcmp(method, DLR_INTERFACE_SET_POSITION))
 		task = dlr_task_set_position_new(invocation, object,
 						 parameters);
+	else if (!strcmp(method, DLR_INTERFACE_SET_COUNTER_POSITION))
+		task = dlr_task_set_counter_position_new(invocation, object,
+							 parameters);
 	else if (!strcmp(method, DLR_INTERFACE_GOTO_TRACK))
 		task = dlr_task_goto_track_new(invocation, object, parameters);
 	else
