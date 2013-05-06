@@ -14,14 +14,12 @@ dleyna_renderer_service_LDADD =	$(GLIB_LIBS)				      			\
 				$(GIO_LIBS)				     			\
 				$(DLEYNA_CORE_LIBS)			      			\
 				$(top_builddir)/libdleyna/renderer/libdleyna-renderer-1.0.la
-			
-			
-dbussessiondir = @DBUS_SESSION_DIR@
-dbussession_DATA = com.intel.dleyna-renderer.service
+
+dbusservicedir = $(DBUS_SERVICE_DIR)
+dbusservice_DATA = com.intel.dleyna-renderer.service
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = dleyna-renderer-service-1.0.pc
 
-CLEANFILES = $(dbussession_DATA) $(pkgconfig_DATA)
-DISTCLEANFILES = $(dbussession_DATA) $(pkgconfig_DATA)
-			
+CLEANFILES = $(dbusservice_DATA) $(pkgconfig_DATA)
+DISTCLEANFILES = $(dbusservice_DATA) $(pkgconfig_DATA)

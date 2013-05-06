@@ -185,6 +185,11 @@ AC_ARG_WITH(ua-prefix,
 		[with_ua_prefix = "$withval"; AC_DEFINE_UNQUOTED([UA_PREFIX], "$with_ua_prefix", [User Agent prefix])],
 		[])
 
+AC_ARG_WITH(dbus_service_dir,
+            AS_HELP_STRING([--with-dbus-service-dir=PATH],[choose directory for dbus service files, [default=PREFIX/share/dbus-1/services]]),
+            with_dbus_service_dir="$withval", with_dbus_service_dir=$datadir/dbus-1/services)
+DBUS_SERVICE_DIR=$with_dbus_service_dir
+AC_SUBST(DBUS_SERVICE_DIR)
 
 AC_ARG_ENABLE(lib-only,
 		AS_HELP_STRING(
@@ -194,11 +199,8 @@ AC_ARG_ENABLE(lib-only,
 		[enable_lib_only=no])
 
 AS_IF([test "x$enable_lib_only" = "xno"],
-      [PKG_CHECK_MODULES([DBUS], [dbus-1],
-			 [DBUS_SESSION_DIR=`$PKG_CONFIG --variable=session_bus_services_dir dbus-1`;
-			  AC_SUBST(DBUS_SESSION_DIR)
-			 ],
-			 [enable_lib_only=yes]);
+      [
+      PKG_CHECK_MODULES([DBUS], [dbus-1], [], [enable_lib_only=yes]);
       PKG_CHECK_MODULES([DLEYNA_CONNECTOR_DBUS], [dleyna-connector-dbus-1.0])
       ])
 
