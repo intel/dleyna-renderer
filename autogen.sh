@@ -14,7 +14,7 @@ if test -z $AUTORECONF; then
         exit 1
 fi
 
-autoreconf --force --install --verbose || exit $?
+autoreconf --force --install --verbose --warning=no-portability || exit $?
 
 cd "$olddir"
 test -n "$NOCONFIGURE" || "$srcdir/configure" "$@"
