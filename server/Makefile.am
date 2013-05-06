@@ -16,7 +16,12 @@ dleyna_renderer_service_LDADD =	$(GLIB_LIBS)				      			\
 				$(top_builddir)/libdleyna/renderer/libdleyna-renderer-1.0.la
 
 dbusservicedir = $(DBUS_SERVICE_DIR)
+dbusservice_in_files = com.intel.dleyna-renderer.service.in
 dbusservice_DATA = com.intel.dleyna-renderer.service
+
+# Replace the 'libexecdir' marker with its fully expanded value
+%.service: %.service.in Makefile
+	$(AM_V_GEN) $(SED) -e "s|\@libexecdir\@|$(libexecdir)|" $< > $@
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = dleyna-renderer-service-1.0.pc
