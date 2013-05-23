@@ -73,15 +73,15 @@ class Renderers:
         self.__manager = dbus.Interface(obj,
                                         'com.intel.dLeynaRenderer.Manager')
         self.__cb = cb
-        self.__manager.connect_to_signal("LostServer", self.__servers_changed)
-        self.__manager.connect_to_signal("FoundServer", self.__servers_changed)
+        self.__manager.connect_to_signal("LostRenderer", self.__servers_changed)
+        self.__manager.connect_to_signal("FoundRenderer", self.__servers_changed)
 
     def __servers_changed(self, server):
         self.__cb()
 
     def get_renderers(self):
         retval = []
-        for path in self.__manager.GetServers():
+        for path in self.__manager.GetRenderers():
             retval.append((path, Renderer(path)))
         return retval
 

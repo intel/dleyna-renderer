@@ -50,18 +50,18 @@
 #endif
 
 #define DLR_INTERFACE_GET_VERSION "GetVersion"
-#define DLR_INTERFACE_GET_SERVERS "GetServers"
+#define DLR_INTERFACE_GET_RENDERERS "GetRenderers"
 #define DLR_INTERFACE_RESCAN "Rescan"
 #define DLR_INTERFACE_RELEASE "Release"
 
-#define DLR_INTERFACE_FOUND_SERVER "FoundServer"
-#define DLR_INTERFACE_LOST_SERVER "LostServer"
+#define DLR_INTERFACE_FOUND_RENDERER "FoundRenderer"
+#define DLR_INTERFACE_LOST_RENDERER "LostRenderer"
 
 #define DLR_INTERFACE_HOST_FILE "HostFile"
 #define DLR_INTERFACE_REMOVE_FILE "RemoveFile"
 
 #define DLR_INTERFACE_VERSION "Version"
-#define DLR_INTERFACE_SERVERS "Servers"
+#define DLR_INTERFACE_RENDERERS "Renderers"
 
 #define DLR_INTERFACE_PATH "Path"
 #define DLR_INTERFACE_URI "Uri"
@@ -120,16 +120,16 @@ static const gchar g_root_introspection[] =
 	"    </method>"
 	"    <method name='"DLR_INTERFACE_RELEASE"'>"
 	"    </method>"
-	"    <method name='"DLR_INTERFACE_GET_SERVERS"'>"
-	"      <arg type='as' name='"DLR_INTERFACE_SERVERS"'"
+	"    <method name='"DLR_INTERFACE_GET_RENDERERS"'>"
+	"      <arg type='as' name='"DLR_INTERFACE_RENDERERS"'"
 	"           direction='out'/>"
 	"    </method>"
 	"    <method name='"DLR_INTERFACE_RESCAN"'>"
 	"    </method>"
-	"    <signal name='"DLR_INTERFACE_FOUND_SERVER"'>"
+	"    <signal name='"DLR_INTERFACE_FOUND_RENDERER"'>"
 	"      <arg type='s' name='"DLR_INTERFACE_PATH"'/>"
 	"    </signal>"
-	"    <signal name='"DLR_INTERFACE_LOST_SERVER"'>"
+	"    <signal name='"DLR_INTERFACE_LOST_RENDERER"'>"
 	"      <arg type='s' name='"DLR_INTERFACE_PATH"'/>"
 	"    </signal>"
 	"  </interface>"
@@ -618,7 +618,7 @@ static void prv_dlr_method_call(dleyna_connector_id_t conn,
 	} else {
 		if (!strcmp(method, DLR_INTERFACE_GET_VERSION))
 			task = dlr_task_get_version_new(invocation);
-		else if (!strcmp(method, DLR_INTERFACE_GET_SERVERS))
+		else if (!strcmp(method, DLR_INTERFACE_GET_RENDERERS))
 			task = dlr_task_get_servers_new(invocation);
 		else if (!strcmp(method, DLR_INTERFACE_RESCAN))
 			task = dlr_task_rescan_new(invocation);
@@ -859,7 +859,7 @@ static void prv_found_media_server(const gchar *path)
 	(void) g_context.connector->notify(g_context.connection,
 					   DLEYNA_SERVER_OBJECT,
 					   DLEYNA_SERVER_INTERFACE_MANAGER,
-					   DLR_INTERFACE_FOUND_SERVER,
+					   DLR_INTERFACE_FOUND_RENDERER,
 					   g_variant_new("(s)", path),
 					   NULL);
 }
@@ -871,7 +871,7 @@ static void prv_lost_media_server(const gchar *path)
 	(void) g_context.connector->notify(g_context.connection,
 					   DLEYNA_SERVER_OBJECT,
 					   DLEYNA_SERVER_INTERFACE_MANAGER,
-					   DLR_INTERFACE_LOST_SERVER,
+					   DLR_INTERFACE_LOST_RENDERER,
 					   g_variant_new("(s)", path),
 					   NULL);
 
