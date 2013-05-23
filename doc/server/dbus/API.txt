@@ -41,9 +41,9 @@ The interface com.intel.dLeynaRenderer.Manager contains 3
 methods.  Descriptions of each of these methods along with their d-Bus
 signatures are given below.
 
-GetServers() -> ao
+GetRenderers() -> ao
 
-GetServers takes no parameters and returns an array of d-Bus object
+GetRenderers takes no parameters and returns an array of d-Bus object
 paths.  Each of these paths reference a d-Bus object that represents a
 single DMR.
 
@@ -76,15 +76,15 @@ Signals:
 
 The com.intel.dLeynaRenderer.Manager interface also exposes two signals.
 
-FoundServer(o)
+FoundRenderer(o)
 
 Is generated whenever a new DMR is detected on the local area network.
-The signal contains the path of the newly discovered server.
+The signal contains the path of the newly discovered renderer.
 
-LostServer(o)
+LostRenderer(o)
 
 Is generated whenever a DMR is shutdown.  The signal contains the path
-of the server which has just been shutdown.
+of the renderer which has just been shutdown.
 
 
 The Renderer Objects:
