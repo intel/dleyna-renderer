@@ -321,21 +321,41 @@ dlr_task_t *dlr_task_remove_uri_new(dleyna_connector_msg_id_t invocation,
 	return task;
 }
 
+dlr_task_t *dlr_task_get_icon_new(dleyna_connector_msg_id_t invocation,
+				  const gchar *path, GVariant *parameters)
+{
+	dlr_task_t *task;
+
+	task = prv_device_task_new(DLR_TASK_GET_ICON, invocation, path,
+				   "(@ays)");
+	task->multiple_retvals = TRUE;
+
+	g_variant_get(parameters, "(s)", &task->ut.get_icon.resolution);
+
+	return task;
+}
+
 void dlr_task_complete(dlr_task_t *task)
 {
+	GVariant *result;
+
 	if (!task)
 		goto finished;
 
 	if (task->invocation) {
-		if (task->result_format && task->result)
+		if (task->result_format && task->result) {
+			if (task->multiple_retvals)
+				result = task->result;
+			else
+				result = g_variant_new(task->result_format,
+						       task->result);
 			dlr_renderer_get_connector()->return_response(
-				task->invocation,
-				g_variant_new(task->result_format,
-					      task->result));
-		else
+						task->invocation, result);
+		} else {
 			dlr_renderer_get_connector()->return_response(
 							task->invocation,
 							NULL);
+		}
 
 		task->invocation = NULL;
 	}

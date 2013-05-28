@@ -49,7 +49,8 @@ enum dlr_task_type_t_ {
 	DLR_TASK_SET_POSITION,
 	DLR_TASK_GOTO_TRACK,
 	DLR_TASK_HOST_URI,
-	DLR_TASK_REMOVE_URI
+	DLR_TASK_REMOVE_URI,
+	DLR_TASK_GET_ICON
 };
 typedef enum dlr_task_type_t_ dlr_task_type_t;
 
@@ -91,6 +92,11 @@ struct dlr_task_host_uri_t_ {
 	gchar *client;
 };
 
+typedef struct dlr_task_get_icon_t_ dlr_task_get_icon_t;
+struct dlr_task_get_icon_t_ {
+	gchar *resolution;
+};
+
 typedef struct dlr_task_t_ dlr_task_t;
 struct dlr_task_t_ {
 	dleyna_task_atom_t atom; /* pseudo inheritance - MUST be first field */
@@ -100,6 +106,7 @@ struct dlr_task_t_ {
 	GVariant *result;
 	dleyna_connector_msg_id_t invocation;
 	gboolean synchronous;
+	gboolean multiple_retvals;
 	union {
 		dlr_task_get_props_t get_props;
 		dlr_task_get_prop_t get_prop;
@@ -107,6 +114,7 @@ struct dlr_task_t_ {
 		dlr_task_open_uri_t open_uri;
 		dlr_task_host_uri_t host_uri;
 		dlr_task_seek_t seek;
+		dlr_task_get_icon_t get_icon;
 	} ut;
 };
 
@@ -169,6 +177,9 @@ dlr_task_t *dlr_task_host_uri_new(dleyna_connector_msg_id_t invocation,
 dlr_task_t *dlr_task_remove_uri_new(dleyna_connector_msg_id_t invocation,
 				    const gchar *path, const gchar *sender,
 				    GVariant *parameters);
+
+dlr_task_t *dlr_task_get_icon_new(dleyna_connector_msg_id_t invocation,
+				  const gchar *path, GVariant *parameters);
 
 void dlr_task_complete(dlr_task_t *task);
 

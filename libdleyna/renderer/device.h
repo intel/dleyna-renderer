@@ -64,6 +64,13 @@ struct dlr_props_t_ {
 	gboolean synced;
 };
 
+typedef struct dlr_device_icon_t_ dlr_device_icon_t;
+struct dlr_device_icon_t_ {
+	gchar *mime_type;
+	guchar *bytes;
+	gsize size;
+};
+
 struct dlr_device_t_ {
 	dleyna_connector_id_t connection;
 	guint ids[DLR_INTERFACE_INFO_MAX];
@@ -79,6 +86,7 @@ struct dlr_device_t_ {
 	double min_rate;
 	double max_rate;
 	guint construct_step;
+	dlr_device_icon_t icon;
 };
 
 void dlr_device_construct(
@@ -157,5 +165,8 @@ void dlr_device_host_uri(dlr_device_t *device, dlr_task_t *task,
 void dlr_device_remove_uri(dlr_device_t *device, dlr_task_t *task,
 			   dlr_host_service_t *host_service,
 			   dlr_upnp_task_complete_t cb);
+
+void dlr_device_get_icon(dlr_device_t *device, dlr_task_t *task,
+			 dlr_upnp_task_complete_t cb);
 
 #endif /* DLR_DEVICE_H__ */
