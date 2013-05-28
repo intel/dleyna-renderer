@@ -55,6 +55,7 @@ class Renderer(object):
         self.__propsIF = get_interface(object_path, PROPS_IF_NAME)
         self.__playerIF = get_interface(object_path, PLAYER_IF_NAME)
         self.__pushhostIF = get_interface(object_path, PUSH_HOST_IF_NAME)
+        self.__deviceIF = get_interface(object_path, DEVICE_IF_NAME)
 
     def get_interfaces(self):
         try:
@@ -121,6 +122,10 @@ class Renderer(object):
 
     def stop(self):
         self.__playerIF.Stop()
+
+    def print_icon(self, resolution):
+        bytes, mime = self.__deviceIF.GetIcon(resolution)
+        print "Icon mime type: " + mime
 
 # Push Host methods
     def host_file(self, path):
@@ -217,3 +222,5 @@ if __name__ == "__main__":
             print("\nProperties of %s on %s:" % (if_name, name))
             print("¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯" + (len(name) + len(if_name)) * "¯")
             renderer.print_props(if_name)
+
+        renderer.print_icon("")

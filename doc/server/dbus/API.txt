@@ -190,12 +190,16 @@ URL for the renderer.
 Methods:
 ---------
 
-The com.intel.dLeynaRenderer.RendererDevice interface currently exposes a
-single method:
+The com.intel.dLeynaRenderer.RendererDevice interface currently exposes two
+methods:
 
 Cancel() -> void
 
 Cancels all requests a client has outstanding on that server.
+
+GetIcon(s Resolution) -> (ay Data, s MimeType)
+
+Returns the device icon bytes according to the Resolution parameter.
 
 
 org.mpris.MediaPlayer2

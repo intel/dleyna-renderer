@@ -96,6 +96,9 @@ void dlr_upnp_host_uri(dlr_upnp_t *upnp, dlr_task_t *task,
 void dlr_upnp_remove_uri(dlr_upnp_t *upnp, dlr_task_t *task,
 			 dlr_upnp_task_complete_t cb);
 
+void dlr_upnp_get_icon(dlr_upnp_t *upnp, dlr_task_t *task,
+		       dlr_upnp_task_complete_t cb);
+
 void dlr_upnp_lost_client(dlr_upnp_t *upnp, const gchar *client_name);
 
 void dlr_upnp_unsubscribe(dlr_upnp_t *upnp);

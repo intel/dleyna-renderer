@@ -795,6 +795,35 @@ void dlr_upnp_remove_uri(dlr_upnp_t *upnp, dlr_task_t *task,
 	DLEYNA_LOG_DEBUG("Exit");
 }
 
+void dlr_upnp_get_icon(dlr_upnp_t *upnp, dlr_task_t *task,
+		       dlr_upnp_task_complete_t cb)
+{
+	dlr_device_t *device;
+	dlr_async_task_t *cb_data = (dlr_async_task_t *)task;
+
+	DLEYNA_LOG_DEBUG("Enter");
+
+	DLEYNA_LOG_DEBUG("Path: %s", task->path);
+	DLEYNA_LOG_DEBUG("Resolution %s", task->ut.get_icon.resolution);
+
+	device = dlr_device_from_path(task->path, upnp->server_udn_map);
+
+	if (!device) {
+		DLEYNA_LOG_WARNING("Cannot locate device");
+
+		cb_data->cb = cb;
+		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
+					     DLEYNA_ERROR_OBJECT_NOT_FOUND,
+					     "Cannot locate a device for the specified object");
+
+		(void) g_idle_add(dlr_async_task_complete, cb_data);
+	} else {
+		dlr_device_get_icon(device, task, cb);
+	}
+
+	DLEYNA_LOG_DEBUG("Exit");
+}
+
 void dlr_upnp_lost_client(dlr_upnp_t *upnp, const gchar *client_name)
 {
 	dlr_host_service_lost_client(upnp->host_service, client_name);

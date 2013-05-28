@@ -97,6 +97,11 @@
 #define DLR_INTERFACE_GOTO_TRACK "GotoTrack"
 
 #define DLR_INTERFACE_CANCEL "Cancel"
+#define DLR_INTERFACE_GET_ICON "GetIcon"
+#define DLR_INTERFACE_RESOLUTION "Resolution"
+#define DLR_INTERFACE_ICON_BYTES "Bytes"
+#define DLR_INTERFACE_MIME_TYPE "MimeType"
+
 
 typedef struct dlr_context_t_ dlr_context_t;
 struct dlr_context_t_ {
@@ -273,6 +278,14 @@ static const gchar g_server_introspection[] =
 	"  </interface>"
 	"  <interface name='"DLEYNA_SERVER_INTERFACE_RENDERER_DEVICE"'>"
 	"    <method name='"DLR_INTERFACE_CANCEL"'>"
+	"    </method>"
+	"    <method name='"DLR_INTERFACE_GET_ICON"'>"
+	"      <arg type='s' name='"DLR_INTERFACE_RESOLUTION"'"
+	"           direction='in'/>"
+	"      <arg type='ay' name='"DLR_INTERFACE_ICON_BYTES"'"
+	"           direction='out'/>"
+	"      <arg type='s' name='"DLR_INTERFACE_MIME_TYPE"'"
+	"           direction='out'/>"
 	"    </method>"
 	"    <property type='s' name='"DLR_INTERFACE_PROP_DEVICE_TYPE"'"
 	"       access='read'/>"
@@ -498,6 +511,10 @@ static void prv_process_async_task(dlr_task_t *task)
 	case DLR_TASK_REMOVE_URI:
 		dlr_upnp_remove_uri(g_context.upnp, task,
 				    prv_async_task_complete);
+		break;
+	case DLR_TASK_GET_ICON:
+		dlr_upnp_get_icon(g_context.upnp, task,
+				  prv_async_task_complete);
 		break;
 	default:
 		break;
@@ -825,6 +842,7 @@ static void prv_renderer_device_method_call(
 					GVariant *parameters,
 					dleyna_connector_msg_id_t invocation)
 {
+	dlr_task_t *task;
 	const gchar *device_id = NULL;
 	GError *error = NULL;
 	const dleyna_task_queue_key_t *queue_id;
@@ -845,11 +863,15 @@ static void prv_renderer_device_method_call(
 			dleyna_task_processor_cancel_queue(queue_id);
 
 		g_context.connector->return_response(invocation, NULL);
+	} else if (!strcmp(method, DLR_INTERFACE_GET_ICON)) {
+		task = dlr_task_get_icon_new(invocation, object, parameters);
+
+		prv_add_task(task, sender, device_id);
 	}
 
 finished:
 
-		return;
+	return;
 }
 
 static void prv_found_media_server(const gchar *path)
