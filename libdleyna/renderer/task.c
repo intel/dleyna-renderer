@@ -327,7 +327,9 @@ dlr_task_t *dlr_task_get_icon_new(dleyna_connector_msg_id_t invocation,
 {
 	dlr_task_t *task;
 
-	task = prv_device_task_new(DLR_TASK_GET_ICON, invocation, path, "");
+	task = prv_device_task_new(DLR_TASK_GET_ICON, invocation, path,
+				   "(@ays)");
+	task->multiple_retvals = TRUE;
 
 	g_variant_get(parameters, "(s)", &task->ut.get_icon.resolution);
 
@@ -343,17 +345,18 @@ void dlr_task_complete(dlr_task_t *task)
 
 	if (task->invocation) {
 		if (task->result_format && task->result) {
-			if (*task->result_format == 0)
+			if (task->multiple_retvals)
 				result = task->result;
 			else
 				result = g_variant_new(task->result_format,
 						       task->result);
 			dlr_renderer_get_connector()->return_response(
 						task->invocation, result);
-		} else
+		} else {
 			dlr_renderer_get_connector()->return_response(
 							task->invocation,
 							NULL);
+		}
 
 		task->invocation = NULL;
 	}

@@ -106,6 +106,7 @@ struct dlr_task_t_ {
 	GVariant *result;
 	dleyna_connector_msg_id_t invocation;
 	gboolean synchronous;
+	gboolean multiple_retvals;
 	union {
 		dlr_task_get_props_t get_props;
 		dlr_task_get_prop_t get_prop;
