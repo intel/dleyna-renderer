@@ -803,9 +803,6 @@ void dlr_upnp_get_icon(dlr_upnp_t *upnp, dlr_task_t *task,
 
 	DLEYNA_LOG_DEBUG("Enter");
 
-	DLEYNA_LOG_DEBUG("Path: %s", task->path);
-	DLEYNA_LOG_DEBUG("Resolution %s", task->ut.get_icon.resolution);
-
 	device = dlr_device_from_path(task->path, upnp->server_udn_map);
 
 	if (!device) {

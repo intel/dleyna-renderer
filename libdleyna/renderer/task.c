@@ -22,7 +22,6 @@
 
 #include <libdleyna/core/error.h>
 #include <libdleyna/core/task-processor.h>
-#include <libdleyna/core/log.h>
 
 #include "async.h"
 #include "server.h"

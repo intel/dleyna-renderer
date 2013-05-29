@@ -2683,18 +2683,19 @@ static void prv_get_icon_cancelled(GCancellable *cancellable,
 {
 	prv_download_info_t *download = (prv_download_info_t *)user_data;
 
+	dlr_async_task_cancelled(cancellable, download->task);
+
 	if (download->msg) {
 		soup_session_cancel_message(download->session, download->msg,
 					    SOUP_STATUS_CANCELLED);
 		DLEYNA_LOG_DEBUG("Cancelling device icon download");
 	}
-
-	dlr_async_task_cancelled(cancellable, download->task);
 }
 
 static void prv_free_download_info(prv_download_info_t *download)
 {
-	g_object_unref(download->msg);
+	if (download->msg)
+		g_object_unref(download->msg);
 	g_object_unref(download->session);
 	g_free(download);
 }
@@ -2775,7 +2776,7 @@ void dlr_device_get_icon(dlr_device_t *device, dlr_task_t *task,
 		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
 					     DLEYNA_ERROR_BAD_RESULT,
 					     "Invalid URL %s", url);
-		g_free(download);
+		prv_free_download_info(download);
 
 		goto end;
 	}
