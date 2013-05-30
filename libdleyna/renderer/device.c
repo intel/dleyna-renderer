@@ -2758,7 +2758,7 @@ void dlr_device_get_icon(dlr_device_t *device, dlr_task_t *task,
 	url = gupnp_device_info_get_icon_url(info, NULL, -1, -1, -1, FALSE,
 					     &device->icon.mime_type, NULL,
 					     NULL, NULL);
-	if (url == NULL || *url == 0) {
+	if (url == NULL) {
 		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
 					     DLEYNA_ERROR_NOT_SUPPORTED,
 					     "No icon available");
@@ -2777,6 +2777,7 @@ void dlr_device_get_icon(dlr_device_t *device, dlr_task_t *task,
 					     DLEYNA_ERROR_BAD_RESULT,
 					     "Invalid URL %s", url);
 		prv_free_download_info(download);
+		g_free(url);
 
 		goto end;
 	}
@@ -2789,6 +2790,8 @@ void dlr_device_get_icon(dlr_device_t *device, dlr_task_t *task,
 	g_object_ref(download->msg);
 	soup_session_queue_message(download->session, download->msg,
 				   prv_get_icon_session_cb, download);
+
+	g_free(url);
 
 	return;
 

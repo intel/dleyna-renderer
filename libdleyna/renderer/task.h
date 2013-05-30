@@ -94,6 +94,7 @@ struct dlr_task_host_uri_t_ {
 
 typedef struct dlr_task_get_icon_t_ dlr_task_get_icon_t;
 struct dlr_task_get_icon_t_ {
+	gchar *mime_type;
 	gchar *resolution;
 };
 

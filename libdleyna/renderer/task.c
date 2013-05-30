@@ -112,6 +112,7 @@ static void prv_dlr_task_delete(dlr_task_t *task)
 		g_free(task->ut.host_uri.client);
 		break;
 	case DLR_TASK_GET_ICON:
+		g_free(task->ut.get_icon.mime_type);
 		g_free(task->ut.get_icon.resolution);
 		break;
 	default:
@@ -333,7 +334,8 @@ dlr_task_t *dlr_task_get_icon_new(dleyna_connector_msg_id_t invocation,
 				   "(@ays)");
 	task->multiple_retvals = TRUE;
 
-	g_variant_get(parameters, "(s)", &task->ut.get_icon.resolution);
+	g_variant_get(parameters, "(ss)", &task->ut.get_icon.mime_type,
+		      &task->ut.get_icon.resolution);
 
 	return task;
 }

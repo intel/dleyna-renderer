@@ -123,8 +123,8 @@ class Renderer(object):
     def stop(self):
         self.__playerIF.Stop()
 
-    def print_icon(self, resolution):
-        bytes, mime = self.__deviceIF.GetIcon(resolution)
+    def print_icon(self, mime_type, resolution):
+        bytes, mime = self.__deviceIF.GetIcon(mime_type, resolution)
         print "Icon mime type: " + mime
 
 # Push Host methods
@@ -223,4 +223,4 @@ if __name__ == "__main__":
             print("¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯" + (len(name) + len(if_name)) * "¯")
             renderer.print_props(if_name)
 
-        renderer.print_icon("")
+        renderer.print_icon("", "")
