@@ -111,6 +111,9 @@ static void prv_dlr_task_delete(dlr_task_t *task)
 		g_free(task->ut.host_uri.uri);
 		g_free(task->ut.host_uri.client);
 		break;
+	case DLR_TASK_GET_ICON:
+		g_free(task->ut.get_icon.resolution);
+		break;
 	default:
 		break;
 	}
