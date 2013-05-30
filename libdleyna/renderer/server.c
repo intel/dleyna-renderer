@@ -101,7 +101,7 @@
 #define DLR_INTERFACE_RESOLUTION "Resolution"
 #define DLR_INTERFACE_ICON_BYTES "Bytes"
 #define DLR_INTERFACE_MIME_TYPE "MimeType"
-
+#define DLR_INTERFACE_REQ_MIME_TYPE "RequestedMimeType"
 
 typedef struct dlr_context_t_ dlr_context_t;
 struct dlr_context_t_ {
@@ -280,6 +280,8 @@ static const gchar g_server_introspection[] =
 	"    <method name='"DLR_INTERFACE_CANCEL"'>"
 	"    </method>"
 	"    <method name='"DLR_INTERFACE_GET_ICON"'>"
+	"      <arg type='s' name='"DLR_INTERFACE_REQ_MIME_TYPE"'"
+	"           direction='in'/>"
 	"      <arg type='s' name='"DLR_INTERFACE_RESOLUTION"'"
 	"           direction='in'/>"
 	"      <arg type='ay' name='"DLR_INTERFACE_ICON_BYTES"'"
