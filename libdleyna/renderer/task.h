@@ -46,7 +46,9 @@ enum dlr_task_type_t_ {
 	DLR_TASK_PREVIOUS,
 	DLR_TASK_OPEN_URI,
 	DLR_TASK_SEEK,
+	DLR_TASK_SEEK_BYTE,
 	DLR_TASK_SET_POSITION,
+	DLR_TASK_SET_COUNTER_POSITION,
 	DLR_TASK_GOTO_TRACK,
 	DLR_TASK_HOST_URI,
 	DLR_TASK_REMOVE_URI,
@@ -82,6 +84,7 @@ struct dlr_task_open_uri_t_ {
 
 typedef struct dlr_task_seek_t_ dlr_task_seek_t;
 struct dlr_task_seek_t_ {
+	guint64 counter_position;
 	gint64 position;
 	guint32 track_number;
 };
@@ -158,8 +161,16 @@ dlr_task_t *dlr_task_previous_new(dleyna_connector_msg_id_t invocation,
 dlr_task_t *dlr_task_seek_new(dleyna_connector_msg_id_t invocation,
 			      const gchar *path, GVariant *parameters);
 
+dlr_task_t *dlr_task_seek_byte_new(dleyna_connector_msg_id_t invocation,
+				   const gchar *path, GVariant *parameters);
+
 dlr_task_t *dlr_task_set_position_new(dleyna_connector_msg_id_t invocation,
 				      const gchar *path, GVariant *parameters);
+
+dlr_task_t *dlr_task_set_counter_position_new(
+					dleyna_connector_msg_id_t invocation,
+					const gchar *path,
+					GVariant *parameters);
 
 dlr_task_t *dlr_task_goto_track_new(dleyna_connector_msg_id_t invocation,
 				    const gchar *path, GVariant *parameters);
