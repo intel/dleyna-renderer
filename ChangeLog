@@ -1,3 +1,28 @@
+version 0.0.2
+	- Add R/W Mute property support, Mute states are received via
+	  the LastChange event, Mute value is set with a SetMute action.
+	- Add a new player interface method OpenUriEx, which is the same as
+	  the existing OpenUri one, with an additional metadata parameter to pass
+	  the URI description information in DIDL-Lite XML format.
+	- Add the X_DLNA_PS transport action support to allow the
+	  playspeeds provided by the renderer once we have provided it a
+	  URI (SetAVTransportURI()) in addition to the renderer default
+	  playspeeds retrieved via the introspection.
+	- Two new methods have been added to the Manager class, renderer_from_name
+	  and renderer_from_udn.  These methods can be used to construct
+	  Renderer objects from UDNs or friendly names
+	- Fix bug: dleyna-renderer can fail to discover a device if a network
+	  connection is lost during device construction
+	  https://github.com/01org/dleyna-renderer/issues/11
+	- Add a Rescan method to Manager interface 
+	- Add autogen.sh script to call `autoreconf -i` 
+	- Renamed a function and two signals in com.intel.dLeynaRenderer.Manager:
+	  GetServers() renamed GetRenderers()
+	  FoundServer renamed FoundRenderer
+	  LostServer renamed LostRenderer
+	- A GetIcon() method is added to the com.intel.dLeynaRenderer.RendererDevice
+	  interface
+
 version 0.0.1
 	- Initial version of dleyna-renderer.
 	- Enable support of deleyna-renderer as git submodules.
