@@ -235,6 +235,17 @@ dlr_task_t *dlr_task_seek_new(dleyna_connector_msg_id_t invocation,
 	return task;
 }
 
+dlr_task_t *dlr_task_seek_byte_new(dleyna_connector_msg_id_t invocation,
+				   const gchar *path, GVariant *parameters)
+{
+	dlr_task_t *task = prv_device_task_new(DLR_TASK_SEEK_BYTE, invocation,
+					       path, NULL);
+
+	g_variant_get(parameters, "(x)", &task->ut.seek.counter_position);
+
+	return task;
+}
+
 dlr_task_t *dlr_task_set_position_new(dleyna_connector_msg_id_t invocation,
 				      const gchar *path, GVariant *parameters)
 {
@@ -244,6 +255,22 @@ dlr_task_t *dlr_task_set_position_new(dleyna_connector_msg_id_t invocation,
 					       invocation, path, NULL);
 
 	g_variant_get(parameters, "(&ox)", &track_id, &task->ut.seek.position);
+
+	return task;
+}
+
+dlr_task_t *dlr_task_set_counter_position_new(
+	dleyna_connector_msg_id_t invocation,
+	const gchar *path,
+	GVariant *parameters)
+{
+	gchar *track_id;
+
+	dlr_task_t *task = prv_device_task_new(DLR_TASK_SET_COUNTER_POSITION,
+					       invocation, path, NULL);
+
+	g_variant_get(parameters, "(&ox)", &track_id,
+		      &task->ut.seek.counter_position);
 
 	return task;
 }
