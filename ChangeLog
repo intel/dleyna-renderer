@@ -1,3 +1,6 @@
+version 0.1.0
+	- Prepare for first stable branch
+
 version 0.0.2
 	- Add R/W Mute property support, Mute states are received via
 	  the LastChange event, Mute value is set with a SetMute action.
