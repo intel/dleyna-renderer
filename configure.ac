@@ -198,12 +198,6 @@ AC_ARG_ENABLE(lib-only,
 		[],
 		[enable_lib_only=no])
 
-AS_IF([test "x$enable_lib_only" = "xno"],
-      [
-      PKG_CHECK_MODULES([DBUS], [dbus-1], [], [enable_lib_only=yes]);
-      PKG_CHECK_MODULES([DLEYNA_CONNECTOR_DBUS], [dleyna-connector-dbus-1.0])
-      ])
-
 AM_CONDITIONAL([BUILD_SERVER], [test "x$enable_lib_only" = "xno"])
 
 
