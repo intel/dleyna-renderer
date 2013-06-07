@@ -580,10 +580,10 @@ static void prv_control_point_initialize(const dleyna_connector_t *connector,
 
 static void prv_control_point_stop_service(void)
 {
-	dlr_upnp_unsubscribe(g_context.upnp);
-
-	if (g_context.upnp)
+	if (g_context.upnp) {
+		dlr_upnp_unsubscribe(g_context.upnp);
 		dlr_upnp_delete(g_context.upnp);
+	}
 
 	if (g_context.connection) {
 		if (g_context.dlr_id)
