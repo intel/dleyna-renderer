@@ -1,7 +1,7 @@
 AC_PREREQ([2.66])
 
 AC_INIT([dleyna-renderer],
-	[0.1.1],
+	[0.1.2],
 	[https://github.com/01org/dleyna-renderer/issues/new],
 	,
 	[https://01.org/dleyna/])
