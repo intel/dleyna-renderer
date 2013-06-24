@@ -28,7 +28,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <syslog.h>
-#include <sys/signalfd.h>
 
 #include <libdleyna/core/connector.h>
 #include <libdleyna/core/control-point.h>
