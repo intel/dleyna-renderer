@@ -162,11 +162,11 @@ static void prv_server_available_cb(GUPnPControlPoint *cp,
 
 	udn = gupnp_device_info_get_udn((GUPnPDeviceInfo *)proxy);
 
-	if (!udn)
-		goto on_error;
-
 	ip_address = gupnp_context_get_host_ip(
 		gupnp_control_point_get_context(cp));
+
+	if (!udn || !ip_address)
+		goto on_error;
 
 	DLEYNA_LOG_DEBUG("UDN %s", udn);
 	DLEYNA_LOG_DEBUG("IP Address %s", ip_address);
