@@ -401,13 +401,12 @@ static void prv_process_sync_task(dlr_task_t *task)
 
 	switch (task->type) {
 	case DLR_TASK_GET_VERSION:
+		task->result = g_variant_ref_sink(g_variant_new_string(VERSION));
 		dlr_task_complete(task);
-		dleyna_task_queue_task_completed(task->atom.queue_id);
 		break;
 	case DLR_TASK_GET_SERVERS:
 		task->result = dlr_upnp_get_server_ids(g_context.upnp);
 		dlr_task_complete(task);
-		dleyna_task_queue_task_completed(task->atom.queue_id);
 		break;
 	case DLR_TASK_RESCAN:
 		dlr_upnp_rescan(g_context.upnp);
@@ -420,23 +419,29 @@ static void prv_process_sync_task(dlr_task_t *task)
 				    DLEYNA_ERROR_NOT_SUPPORTED,
 				    "Command not supported.");
 		dlr_task_fail(task, error);
-		dleyna_task_queue_task_completed(task->atom.queue_id);
 		g_error_free(error);
 		break;
 	default:
+		goto finished;
 		break;
 	}
+
+	dleyna_task_queue_task_completed(task->atom.queue_id);
+
+finished:
+	return;
+
 }
 
 static void prv_async_task_complete(dlr_task_t *task, GError *error)
 {
 	DLEYNA_LOG_DEBUG("Enter");
 
-	if (error) {
+	if (!error) {
+		dlr_task_complete(task);
+	} else {
 		dlr_task_fail(task, error);
 		g_error_free(error);
-	} else {
-		dlr_task_complete(task);
 	}
 
 	dleyna_task_queue_task_completed(task->atom.queue_id);
@@ -915,17 +920,13 @@ static gboolean prv_control_point_start_service(
 							0,
 							g_root_vtables);
 
-	if (!g_context.dlr_id) {
-		retval = FALSE;
-		goto out;
-	} else {
+	if (g_context.dlr_id)
 		g_context.upnp = dlr_upnp_new(connection,
 					     g_server_vtables,
 					     prv_found_media_server,
 					     prv_lost_media_server);
-	}
-
-out:
+	else
+		retval = FALSE;
 
 	return retval;
 }
