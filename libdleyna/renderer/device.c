@@ -2513,15 +2513,31 @@ static void prv_open_uri_cb(GUPnPServiceProxy *proxy,
 					     upnp_error->message);
 		g_error_free(upnp_error);
 
-		goto exit;
+		goto on_error;
 	}
 
 	prv_reset_transport_speed_props(cb_data->device);
 
-exit:
+	if (cb_data->task.type == DLR_TASK_OPEN_URI) {
+		cb_data->action =
+			gupnp_service_proxy_begin_action(
+						cb_data->proxy,
+						"Play",
+						prv_simple_call_cb,
+						cb_data,
+						"InstanceID", G_TYPE_INT, 0,
+						"Speed", G_TYPE_STRING,
+						cb_data->device->rate, NULL);
+		goto on_exit;
+	}
+
+on_error:
 
 	(void) g_idle_add(dlr_async_task_complete, cb_data);
 	g_cancellable_disconnect(cb_data->cancellable, cb_data->cancel_id);
+
+on_exit:
+	return;
 }
 
 void dlr_device_open_uri(dlr_device_t *device, dlr_task_t *task,
