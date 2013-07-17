@@ -62,7 +62,6 @@ class Renderer:
             self.__playerIF.Stop()
         uri = self.__hostIF.HostFile(fname)
         self.__playerIF.OpenUri(uri)
-        self.__playerIF.Play()
 
 class Renderers:
 
