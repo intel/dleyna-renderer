@@ -102,6 +102,7 @@ static void prv_dlr_task_delete(dlr_task_t *task)
 		g_variant_unref(task->ut.set_prop.params);
 		break;
 	case DLR_TASK_OPEN_URI:
+	case DLR_TASK_OPEN_NEXT_URI:
 		g_free(task->ut.open_uri.uri);
 		g_free(task->ut.open_uri.metadata);
 		break;
@@ -259,6 +260,17 @@ dlr_task_t *dlr_task_goto_track_new(dleyna_connector_msg_id_t invocation,
 	return task;
 }
 
+static dlr_task_t *prv_open_uri_upnp_task_new(dlr_task_t *task,
+					      GVariant *parameters)
+{
+	g_variant_get(parameters, "(ss)", &task->ut.open_uri.uri,
+		      &task->ut.open_uri.metadata);
+	g_strstrip(task->ut.open_uri.uri);
+	g_strstrip(task->ut.open_uri.metadata);
+
+	return task;
+}
+
 dlr_task_t *dlr_task_open_uri_new(dleyna_connector_msg_id_t invocation,
 				  const gchar *path, GVariant *parameters)
 {
@@ -283,12 +295,18 @@ dlr_task_t *dlr_task_open_uri_ex_new(dleyna_connector_msg_id_t invocation,
 	task = prv_device_task_new(DLR_TASK_OPEN_URI, invocation, path,
 				   NULL);
 
-	g_variant_get(parameters, "(ss)",
-		      &task->ut.open_uri.uri, &task->ut.open_uri.metadata);
-	g_strstrip(task->ut.open_uri.uri);
-	g_strstrip(task->ut.open_uri.metadata);
+	return prv_open_uri_upnp_task_new(task, parameters);
+}
 
-	return task;
+dlr_task_t *dlr_task_open_next_uri_new(dleyna_connector_msg_id_t invocation,
+				       const gchar *path, GVariant *parameters)
+{
+	dlr_task_t *task;
+
+	task = prv_device_task_new(DLR_TASK_OPEN_NEXT_URI, invocation, path,
+				   NULL);
+
+	return prv_open_uri_upnp_task_new(task, parameters);
 }
 
 dlr_task_t *dlr_task_host_uri_new(dleyna_connector_msg_id_t invocation,
