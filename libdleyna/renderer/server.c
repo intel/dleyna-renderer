@@ -412,7 +412,6 @@ static void prv_process_sync_task(dlr_task_t *task)
 	case DLR_TASK_RESCAN:
 		dlr_upnp_rescan(g_context.upnp);
 		dlr_task_complete(task);
-		dleyna_task_queue_task_completed(task->atom.queue_id);
 		break;
 	case DLR_TASK_RAISE:
 	case DLR_TASK_QUIT:
