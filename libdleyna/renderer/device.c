@@ -1609,12 +1609,21 @@ static void prv_get_position_info_cb(GUPnPServiceProxy *proxy,
 					     &error, "RelTime",
 					     G_TYPE_STRING, &rel_pos, NULL);
 	if (!end || (rel_pos == NULL)) {
-		message = (error != NULL) ? error->message : "Invalid result";
-		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
-					     DLEYNA_ERROR_OPERATION_FAILED,
-					     "GetPositionInfo operation failed: %s",
-					     message);
-		goto on_error;
+		if (cb_data->task.type == DLR_TASK_GET_ALL_PROPS) {
+			/* Do not fail, just remove the property */
+			g_hash_table_remove(cb_data->device->props.player_props,
+					    DLR_INTERFACE_PROP_POSITION);
+			goto end;
+		} else {
+			message = (error != NULL) ? error->message :
+							"Invalid result";
+			cb_data->error = g_error_new(
+						DLEYNA_SERVER_ERROR,
+						DLEYNA_ERROR_OPERATION_FAILED,
+						"GetPositionInfo operation failed: %s",
+						message);
+			goto end;
+		}
 	}
 
 	changed_props_vb = g_variant_builder_new(G_VARIANT_TYPE("a{sv}"));
@@ -1631,7 +1640,7 @@ static void prv_get_position_info_cb(GUPnPServiceProxy *proxy,
 	g_variant_unref(changed_props);
 	g_variant_builder_unref(changed_props_vb);
 
-on_error:
+end:
 
 	if (error != NULL)
 		g_error_free(error);
