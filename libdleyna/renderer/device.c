@@ -1922,7 +1922,6 @@ static void prv_update_device_props(GUPnPDeviceInfo *proxy, GHashTable *props)
 	val = g_variant_ref_sink(g_variant_new_string(str));
 	g_hash_table_insert(props, DLR_INTERFACE_PROP_PRESENTATION_URL, val);
 	g_free(str);
-
 }
 
 static void prv_add_player_speed_props(GHashTable *player_props,
@@ -2134,7 +2133,6 @@ static GVariant *prv_get_rate_value_from_double(GVariant *params,
 
 	g_variant_iter_init(&iter, tps);
 	while (g_variant_iter_next(&iter, "d", &tps_value)) {
-
 		if (fabs(mpris_rate - tps_value) <= 0.01) {
 			val = g_variant_ref_sink(
 				g_variant_new_double(tps_value));
@@ -2313,7 +2311,6 @@ void dlr_device_get_all_props(dlr_device_t *device, dlr_task_t *task,
 
 	if ((!strcmp(get_props->interface_name, DLR_INTERFACE_PLAYER) ||
 	     !strcmp(get_props->interface_name, ""))) {
-
 		/* Need to read the current position.  This property is not
 		   evented */
 
