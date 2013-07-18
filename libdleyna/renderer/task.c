@@ -102,6 +102,7 @@ static void prv_dlr_task_delete(dlr_task_t *task)
 		g_variant_unref(task->ut.set_prop.params);
 		break;
 	case DLR_TASK_OPEN_URI:
+	case DLR_TASK_SET_URI:
 		g_free(task->ut.open_uri.uri);
 		g_free(task->ut.open_uri.metadata);
 		break;
@@ -281,6 +282,22 @@ dlr_task_t *dlr_task_open_uri_ex_new(dleyna_connector_msg_id_t invocation,
 	dlr_task_t *task;
 
 	task = prv_device_task_new(DLR_TASK_OPEN_URI, invocation, path,
+				   NULL);
+
+	g_variant_get(parameters, "(ss)",
+		      &task->ut.open_uri.uri, &task->ut.open_uri.metadata);
+	g_strstrip(task->ut.open_uri.uri);
+	g_strstrip(task->ut.open_uri.metadata);
+
+	return task;
+}
+
+dlr_task_t *dlr_task_set_uri_new(dleyna_connector_msg_id_t invocation,
+				     const gchar *path, GVariant *parameters)
+{
+	dlr_task_t *task;
+
+	task = prv_device_task_new(DLR_TASK_SET_URI, invocation, path,
 				   NULL);
 
 	g_variant_get(parameters, "(ss)",
