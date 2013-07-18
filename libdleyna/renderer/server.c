@@ -437,7 +437,6 @@ static void prv_process_sync_task(dlr_task_t *task)
 
 finished:
 	return;
-
 }
 
 static void prv_async_task_complete(dlr_task_t *task, GError *error)
