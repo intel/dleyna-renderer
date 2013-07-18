@@ -108,6 +108,9 @@ class Renderer(object):
     def open_uri_ex(self, uri, metadata):
         self.__playerIF.OpenUriEx(uri, metadata)
 
+    def set_uri(self, uri, metadata):
+        self.__playerIF.SetUri(uri, metadata)
+
     def previous(self):
         self.__playerIF.Previous()
 

@@ -2518,6 +2518,9 @@ static void prv_open_uri_cb(GUPnPServiceProxy *proxy,
 
 	prv_reset_transport_speed_props(cb_data->device);
 
+	DLEYNA_LOG_DEBUG("Task: %s", (cb_data->task.type == DLR_TASK_OPEN_URI)
+					? "OPEN URI" : "SET URI");
+
 	if (cb_data->task.type == DLR_TASK_OPEN_URI) {
 		cb_data->action =
 			gupnp_service_proxy_begin_action(
