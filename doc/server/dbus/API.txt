@@ -277,12 +277,16 @@ GotoTrack(u TrackNumber) -> void
 
 Performs a seek operation to the specified track number.
 
-
 OpenUriEx(s Uri, s Metadata) -> void
 
 Same as the OpenUri method of the org.mpris.MediaPlayer2.Player MPRIS2 standard
 interface, with an additional parameter Metadata to specify the DIDL-Lite XML
 description of the item to be opened.  New in version 0.0.2.
+
+OpenNextUri(s Uri, s Metadata) -> void
+
+Same as OpenUriEx method but for enabling an early download of the next object.
+New in version 0.2.0.
 
 SetUri(s Uri, s Metadata) -> void
 
