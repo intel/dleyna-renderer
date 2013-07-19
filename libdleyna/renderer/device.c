@@ -202,7 +202,7 @@ static void prv_emit_signal_properties_changed(dlr_device_t *device,
 					       const char *interface,
 					       GVariant *changed_props)
 {
-#if DLR_LOG_LEVEL & DLR_LOG_LEVEL_DEBUG
+#if DLEYNA_LOG_LEVEL & DLEYNA_LOG_LEVEL_DEBUG
 	gchar *params;
 #endif
 	GVariant *val = g_variant_ref_sink(g_variant_new("(s@a{sv}as)",
@@ -215,7 +215,7 @@ static void prv_emit_signal_properties_changed(dlr_device_t *device,
 			 DLR_INTERFACE_PROPERTIES_CHANGED,
 			 device->path);
 
-#if DLR_LOG_LEVEL & DLR_LOG_LEVEL_DEBUG
+#if DLEYNA_LOG_LEVEL & DLEYNA_LOG_LEVEL_DEBUG
 	params = g_variant_print(val, FALSE);
 	DLEYNA_LOG_DEBUG("Params: %s", params);
 	g_free(params);
@@ -2501,6 +2501,9 @@ static void prv_open_uri_cb(GUPnPServiceProxy *proxy,
 {
 	dlr_async_task_t *cb_data = user_data;
 	GError *upnp_error = NULL;
+#if DLEYNA_LOG_LEVEL & DLEYNA_LOG_LEVEL_DEBUG
+	gchar *type;
+#endif
 
 	if (!gupnp_service_proxy_end_action(cb_data->proxy, cb_data->action,
 					    &upnp_error, NULL)) {
@@ -2515,8 +2518,16 @@ static void prv_open_uri_cb(GUPnPServiceProxy *proxy,
 
 	prv_reset_transport_speed_props(cb_data->device);
 
-	DLEYNA_LOG_DEBUG("Task: %s", (cb_data->task.type == DLR_TASK_OPEN_URI)
-					? "OPEN URI" : "SET URI");
+#if DLEYNA_LOG_LEVEL & DLEYNA_LOG_LEVEL_DEBUG
+	if (cb_data->task.type == DLR_TASK_OPEN_URI)
+		type = "OPEN URI";
+	else if (cb_data->task.type == DLR_TASK_OPEN_NEXT_URI)
+		type = "OPEN NEXT URI";
+	else if (cb_data->task.type == DLR_TASK_SET_URI)
+		type = "SET URI";
+
+	DLEYNA_LOG_DEBUG("Task: %s", type);
+#endif
 
 	if (cb_data->task.type == DLR_TASK_OPEN_URI) {
 		cb_data->action =
@@ -2566,13 +2577,14 @@ void dlr_device_open_uri(dlr_device_t *device, dlr_task_t *task,
 
 	cb_data->action =
 		gupnp_service_proxy_begin_action(cb_data->proxy,
-						 "SetAVTransportURI",
+						 open_uri_data->operation,
 						 prv_open_uri_cb,
 						 cb_data,
 						 "InstanceID", G_TYPE_INT, 0,
-						 "CurrentURI", G_TYPE_STRING,
+						 open_uri_data->uri_type,
+						 G_TYPE_STRING,
 						 open_uri_data->uri,
-						 "CurrentURIMetaData",
+						 open_uri_data->metadata_type,
 						 G_TYPE_STRING,
 						 metadata ? metadata : "",
 						 NULL);

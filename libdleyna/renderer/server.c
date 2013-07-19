@@ -91,6 +91,7 @@
 #define DLR_INTERFACE_STOP "Stop"
 #define DLR_INTERFACE_OPEN_URI "OpenUri"
 #define DLR_INTERFACE_OPEN_URI_EX "OpenUriEx"
+#define DLR_INTERFACE_OPEN_NEXT_URI "OpenNextUri"
 #define DLR_INTERFACE_SET_URI "SetUri"
 #define DLR_INTERFACE_SEEK "Seek"
 #define DLR_INTERFACE_SET_POSITION "SetPosition"
@@ -209,6 +210,12 @@ static const gchar g_server_introspection[] =
 	"           direction='in'/>"
 	"    </method>"
 	"    <method name='"DLR_INTERFACE_OPEN_URI_EX"'>"
+	"      <arg type='s' name='"DLR_INTERFACE_URI"'"
+	"           direction='in'/>"
+	"      <arg type='s' name='"DLR_INTERFACE_METADATA"'"
+	"           direction='in'/>"
+	"    </method>"
+	"    <method name='"DLR_INTERFACE_OPEN_NEXT_URI"'>"
 	"      <arg type='s' name='"DLR_INTERFACE_URI"'"
 	"           direction='in'/>"
 	"      <arg type='s' name='"DLR_INTERFACE_METADATA"'"
@@ -501,6 +508,7 @@ static void prv_process_async_task(dlr_task_t *task)
 				  prv_async_task_complete);
 		break;
 	case DLR_TASK_OPEN_URI:
+	case DLR_TASK_OPEN_NEXT_URI:
 	case DLR_TASK_SET_URI:
 		dlr_upnp_open_uri(g_context.upnp, task,
 				  prv_async_task_complete);
@@ -793,6 +801,9 @@ static void prv_dlr_player_method_call(dleyna_connector_id_t conn,
 		task = dlr_task_open_uri_new(invocation, object, parameters);
 	else if (!strcmp(method, DLR_INTERFACE_OPEN_URI_EX))
 		task = dlr_task_open_uri_ex_new(invocation, object, parameters);
+	else if (!strcmp(method, DLR_INTERFACE_OPEN_NEXT_URI))
+		task = dlr_task_open_next_uri_new(invocation, object,
+						  parameters);
 	else if (!strcmp(method, DLR_INTERFACE_SET_URI))
 		task = dlr_task_set_uri_new(invocation, object, parameters);
 	else if (!strcmp(method, DLR_INTERFACE_SEEK))
