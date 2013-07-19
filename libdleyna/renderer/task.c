@@ -281,10 +281,10 @@ dlr_task_t *dlr_task_open_uri_new(dleyna_connector_msg_id_t invocation,
 }
 
 static dlr_task_t *prv_open_uri_ex_generic(dlr_task_t *task,
-					      GVariant *parameters,
-					      const gchar *operation,
-					      const gchar *uri_type,
-					      const gchar *metadata_type)
+					   GVariant *parameters,
+					   const gchar *operation,
+					   const gchar *uri_type,
+					   const gchar *metadata_type)
 {
 	g_variant_get(parameters, "(ss)", &task->ut.open_uri.uri,
 		      &task->ut.open_uri.metadata);

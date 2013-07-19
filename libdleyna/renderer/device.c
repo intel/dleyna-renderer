@@ -2561,6 +2561,7 @@ void dlr_device_open_uri(dlr_device_t *device, dlr_task_t *task,
 
 	DLEYNA_LOG_INFO("URI: %s", open_uri_data->uri);
 	DLEYNA_LOG_INFO("METADATA: %s", metadata ? metadata : "Not provided");
+	DLEYNA_LOG_INFO("ACTION: %s", open_uri_data->operation);
 
 	context = dlr_device_get_context(device);
 	cb_data->cb = cb;

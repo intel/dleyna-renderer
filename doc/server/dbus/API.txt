@@ -286,6 +286,7 @@ description of the item to be opened.  New in version 0.0.2.
 OpenNextUri(s Uri, s Metadata) -> void
 
 Same as OpenUriEx method but for enabling an early download of the next object.
+New in version 0.2.0.
 
 SetUri(s Uri, s Metadata) -> void
 
