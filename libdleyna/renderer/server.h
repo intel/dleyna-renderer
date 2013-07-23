@@ -37,4 +37,6 @@ dleyna_task_processor_t *dlr_renderer_service_get_task_processor(void);
 
 const dleyna_connector_t *dlr_renderer_get_connector(void);
 
+const gchar *dlr_renderer_get_interface_name(guint index);
+
 #endif /* DLR_SERVER_H__ */
