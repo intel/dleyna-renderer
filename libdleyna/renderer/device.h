@@ -87,6 +87,7 @@ struct dlr_device_t_ {
 	double max_rate;
 	guint construct_step;
 	dlr_device_icon_t icon;
+	GHashTable *rc_event_handlers;
 };
 
 void dlr_device_construct(
