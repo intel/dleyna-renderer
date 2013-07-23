@@ -386,7 +386,7 @@ static const dleyna_connector_dispatch_cb_t g_root_vtables[1] = {
 
 static const dleyna_connector_dispatch_cb_t
 				g_server_vtables[DLR_INTERFACE_INFO_MAX] = {
-	/* MUST be in the exact same order as g_msu_server_introspection */
+	/* MUST be in the exact same order as g_server_introspection */
 	prv_props_method_call,
 	prv_dlr_device_method_call,
 	prv_dlr_player_method_call,
@@ -395,7 +395,7 @@ static const dleyna_connector_dispatch_cb_t
 };
 
 static const gchar *g_server_interfaces[DLR_INTERFACE_INFO_MAX] = {
-	/* MUST be in the exact same order as g_msu_server_introspection */
+	/* MUST be in the exact same order as g_server_introspection */
 	DLR_INTERFACE_PROPERTIES,
 	DLR_INTERFACE_SERVER,
 	DLR_INTERFACE_PLAYER,
