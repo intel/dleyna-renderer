@@ -745,7 +745,7 @@ static GUPnPServiceProxyAction *prv_declare(dleyna_service_task_t *task,
 				device->connection,
 				device->path,
 				FALSE,
-				i,
+				dlr_renderer_get_interface_name(i),
 				table + i);
 
 		if (!device->ids[i]) {
