@@ -120,11 +120,17 @@ class Renderer(object):
     def seek(self, offset):
         self.__playerIF.Seek(offset)
 
+    def byte_seek(self, offset):
+        self.__playerIF.ByteSeek(offset)
+
     def goto_track(self, trackID):
         self.__playerIF.GotoTrack(trackID)
 
     def set_position(self, trackID, position):
         self.__playerIF.setPosition(trackID, position)
+
+    def set_byte_position(self, trackID, position):
+        self.__playerIF.setBytePosition(trackID, position)
 
     def stop(self):
         self.__playerIF.Stop()

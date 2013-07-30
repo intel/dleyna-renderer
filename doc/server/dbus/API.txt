@@ -269,7 +269,13 @@ interface.  The main points of interest are noted below:
 |------------------------------------------------------------------------------|
 | Mute                |    b   | o  | The mute setting of the master audio     |
 |                     |        |    | channel. New in version 0.0.2.           |
--------------------------------------------------------------------------------|
+|------------------------------------------------------------------------------|
+| CanByteSeek         |    b   | m  | Whether the client can control the       |
+|                     |        |    | playback position using ByteSeek and     |
+|                     |        |    | SetBytePosition.                         |
+|------------------------------------------------------------------------------|
+| BytePosition        |    x   | m  | The current track position in bytes.     |
+|------------------------------------------------------------------------------|
 
 - new methods have been added, they are described below:
 
@@ -292,6 +298,13 @@ SetUri(s Uri, s Metadata) -> void
 
 Same as OpenUriEx except that it doesn't automatically play the media.  You need
 to explicitely call the Play method. New in version 0.2.0.
+
+ByteSeek(x Offset) -> void
+SetBytePosition(o TrackID, x Position) -> void
+
+Same as Seek and SetPosition but last parameter (Offset and Position) is not
+expressed in second but in byte, and allows to set the seekmode to respectively
+“REL_COUNT” and “ABS_COUNT” . New in version 0.2.1
 
 
 org.mpris.MediaPlayer2.TrackList and org.mpris.MediaPlayer2.Playlists
