@@ -144,9 +144,12 @@ below:
 | PresentationURL   |   s   |  o   | The presentation URL of the server, i.e., |
 |                   |       |      | a link to it's HTML management interface. |
 |------------------------------------------------------------------------------|
-| ProtocolInfo      |   s   |   m  | A string that identifies all of the file  |
+| ProtocolInfo      |   s   |  m   | A string that identifies all of the file  |
 |                   |       |      | formats and network protocol combinations |
 |                   |       |      | that the renderer supports.  (1)          |
+|------------------------------------------------------------------------------|
+| DeviceClasses     |  as   |  o   | A list of supported device classe, such   |
+|                   |       |      | as DMR-1.5, etc.                          |
 |------------------------------------------------------------------------------|
 
 (* where m/o indicates whether the property is optional or mandatory )
@@ -274,7 +277,7 @@ interface.  The main points of interest are noted below:
 |                     |        |    | playback position using ByteSeek and     |
 |                     |        |    | SetBytePosition.                         |
 |------------------------------------------------------------------------------|
-| BytePosition        |    x   | m  | The current track position in bytes.     |
+| BytePosition        |    x   | o  | The current track position in bytes.     |
 |------------------------------------------------------------------------------|
 
 - new methods have been added, they are described below:

@@ -1785,12 +1785,10 @@ static void prv_get_position_info_cb(GUPnPServiceProxy *proxy,
 	if (rel_pos != NULL) {
 		g_strstrip(rel_pos);
 		prv_add_reltime(cb_data->device, rel_pos, changed_props_vb);
-		g_free(rel_pos);
 	}
 	if (rel_cnt != NULL) {
 		g_strstrip(rel_cnt);
 		prv_add_relcount(cb_data->device, rel_cnt, changed_props_vb);
-		g_free(rel_cnt);
 	}
 
 	changed_props = g_variant_ref_sink(
@@ -1814,6 +1812,9 @@ on_error:
 				message);
 
 out:
+
+	g_free(rel_pos);
+	g_free(rel_cnt);
 
 	if (error != NULL)
 		g_error_free(error);
