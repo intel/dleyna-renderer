@@ -148,7 +148,7 @@ below:
 |                   |       |      | formats and network protocol combinations |
 |                   |       |      | that the renderer supports.  (1)          |
 |------------------------------------------------------------------------------|
-| DeviceClasses     |  as   |  o   | A list of supported device classe, such   |
+| DeviceClasses     |  as   |  o   | A list of supported device classes, such  |
 |                   |       |      | as DMR-1.5, etc.                          |
 |------------------------------------------------------------------------------|
 
