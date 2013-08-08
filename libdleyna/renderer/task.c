@@ -26,6 +26,14 @@
 #include "async.h"
 #include "server.h"
 
+#define DLR_TASK_SET_URI_OPERATION	"SetAVTransportURI"
+#define DLR_TASK_SET_URI_TYPE		"CurrentURI"
+#define DLR_TASK_SET_URI_META_DATA	"CurrentURIMetaData"
+
+#define DLR_TASK_SET_NEXT_URI_OPERATION	"SetNextAVTransportURI"
+#define DLR_TASK_SET_NEXT_URI_TYPE	"NextURI"
+#define DLR_TASK_SET_NEXT_URI_META_DATA	"NextURIMetaData"
+
 dlr_task_t *dlr_task_rescan_new(dleyna_connector_msg_id_t invocation)
 {
 	dlr_task_t *task = g_new0(dlr_task_t, 1);
@@ -106,9 +114,6 @@ static void prv_dlr_task_delete(dlr_task_t *task)
 	case DLR_TASK_SET_URI:
 		g_free(task->ut.open_uri.uri);
 		g_free(task->ut.open_uri.metadata);
-		g_free(task->ut.open_uri.operation);
-		g_free(task->ut.open_uri.uri_type);
-		g_free(task->ut.open_uri.metadata_type);
 		break;
 	case DLR_TASK_HOST_URI:
 	case DLR_TASK_REMOVE_URI:
@@ -301,9 +306,9 @@ dlr_task_t *dlr_task_open_uri_new(dleyna_connector_msg_id_t invocation,
 	g_variant_get(parameters, "(s)", &task->ut.open_uri.uri);
 	g_strstrip(task->ut.open_uri.uri);
 
-	task->ut.open_uri.operation = g_strdup("SetAVTransportURI");
-	task->ut.open_uri.uri_type = g_strdup("CurrentURI");
-	task->ut.open_uri.metadata_type = g_strdup("CurrentURIMetaData");
+	task->ut.open_uri.operation = DLR_TASK_SET_URI_OPERATION;
+	task->ut.open_uri.uri_type = DLR_TASK_SET_URI_TYPE;
+	task->ut.open_uri.metadata_type = DLR_TASK_SET_URI_META_DATA;
 
 	return task;
 }
@@ -318,9 +323,9 @@ static dlr_task_t *prv_open_uri_ex_generic(dlr_task_t *task,
 		      &task->ut.open_uri.metadata);
 	g_strstrip(task->ut.open_uri.uri);
 	g_strstrip(task->ut.open_uri.metadata);
-	task->ut.open_uri.operation = g_strdup(operation);
-	task->ut.open_uri.uri_type = g_strdup(uri_type);
-	task->ut.open_uri.metadata_type = g_strdup(metadata_type);
+	task->ut.open_uri.operation = operation;
+	task->ut.open_uri.uri_type = uri_type;
+	task->ut.open_uri.metadata_type = metadata_type;
 
 	return task;
 }
@@ -333,8 +338,11 @@ dlr_task_t *dlr_task_open_uri_ex_new(dleyna_connector_msg_id_t invocation,
 	task = prv_device_task_new(DLR_TASK_OPEN_URI, invocation, path,
 				   NULL);
 
-	return prv_open_uri_ex_generic(task, parameters, "SetAVTransportURI",
-				       "CurrentURI", "CurrentURIMetaData");
+	return prv_open_uri_ex_generic(task,
+				       parameters,
+				       DLR_TASK_SET_URI_OPERATION,
+				       DLR_TASK_SET_URI_TYPE,
+				       DLR_TASK_SET_URI_META_DATA);
 }
 
 dlr_task_t *dlr_task_open_next_uri_new(dleyna_connector_msg_id_t invocation,
@@ -345,9 +353,11 @@ dlr_task_t *dlr_task_open_next_uri_new(dleyna_connector_msg_id_t invocation,
 	task = prv_device_task_new(DLR_TASK_OPEN_NEXT_URI, invocation, path,
 				   NULL);
 
-	return prv_open_uri_ex_generic(task, parameters,
-				       "SetNextAVTransportURI", "NextURI",
-				       "NextURIMetaData");
+	return prv_open_uri_ex_generic(task,
+				       parameters,
+				       DLR_TASK_SET_NEXT_URI_OPERATION,
+				       DLR_TASK_SET_NEXT_URI_TYPE,
+				       DLR_TASK_SET_NEXT_URI_META_DATA);
 }
 
 dlr_task_t *dlr_task_set_uri_new(dleyna_connector_msg_id_t invocation,
@@ -358,8 +368,11 @@ dlr_task_t *dlr_task_set_uri_new(dleyna_connector_msg_id_t invocation,
 	task = prv_device_task_new(DLR_TASK_SET_URI, invocation, path,
 				   NULL);
 
-	return prv_open_uri_ex_generic(task, parameters, "SetAVTransportURI",
-				       "CurrentURI", "CurrentURIMetaData");
+	return prv_open_uri_ex_generic(task,
+				       parameters,
+				       DLR_TASK_SET_URI_OPERATION,
+				       DLR_TASK_SET_URI_TYPE,
+				       DLR_TASK_SET_URI_META_DATA);
 }
 
 dlr_task_t *dlr_task_host_uri_new(dleyna_connector_msg_id_t invocation,

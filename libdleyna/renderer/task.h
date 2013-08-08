@@ -82,9 +82,9 @@ typedef struct dlr_task_open_uri_t_ dlr_task_open_uri_t;
 struct dlr_task_open_uri_t_ {
 	gchar *uri;
 	gchar *metadata;
-	gchar *operation;
-	gchar *uri_type;
-	gchar *metadata_type;
+	const gchar *operation;
+	const gchar *uri_type;
+	const gchar *metadata_type;
 };
 
 typedef struct dlr_task_seek_t_ dlr_task_seek_t;
