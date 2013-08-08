@@ -14,7 +14,7 @@ AM_CFLAGS =	$(GLIB_CFLAGS)				\
 
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 
-lib_LTLIBRARIES = libdleyna-renderer-1.0.la
+pkglib_LTLIBRARIES = libdleyna-renderer-1.0.la
 
 libdleyna_rendererinc_HEADERS = 	control-point-renderer.h
 

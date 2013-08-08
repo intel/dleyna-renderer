@@ -301,7 +301,9 @@ dlr_task_t *dlr_task_open_uri_new(dleyna_connector_msg_id_t invocation,
 	g_variant_get(parameters, "(s)", &task->ut.open_uri.uri);
 	g_strstrip(task->ut.open_uri.uri);
 
-	task->ut.open_uri.metadata = NULL;
+	task->ut.open_uri.operation = g_strdup("SetAVTransportURI");
+	task->ut.open_uri.uri_type = g_strdup("CurrentURI");
+	task->ut.open_uri.metadata_type = g_strdup("CurrentURIMetaData");
 
 	return task;
 }

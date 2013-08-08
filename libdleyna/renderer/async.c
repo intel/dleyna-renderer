@@ -37,7 +37,8 @@ gboolean dlr_async_task_complete(gpointer user_data)
 {
 	dlr_async_task_t *cb_data = user_data;
 
-	DLEYNA_LOG_DEBUG("Enter. Error %p", (void *)cb_data->error);
+	DLEYNA_LOG_DEBUG("Enter. %s %s", cb_data->error ? "Error:" : "Success.",
+	                 cb_data->error ? cb_data->error->message : "");
 	DLEYNA_LOG_DEBUG_NL();
 
 	if (cb_data->proxy != NULL)
