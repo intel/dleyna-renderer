@@ -56,7 +56,7 @@ dlr_task_t *dlr_task_get_servers_new(dleyna_connector_msg_id_t invocation)
 
 	task->type = DLR_TASK_GET_SERVERS;
 	task->invocation = invocation;
-	task->result_format = "(@as)";
+	task->result_format = "(@ao)";
 	task->synchronous = TRUE;
 
 	return task;

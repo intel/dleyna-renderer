@@ -126,7 +126,7 @@ static const gchar g_root_introspection[] =
 	"    <method name='"DLR_INTERFACE_RELEASE"'>"
 	"    </method>"
 	"    <method name='"DLR_INTERFACE_GET_RENDERERS"'>"
-	"      <arg type='as' name='"DLR_INTERFACE_RENDERERS"'"
+	"      <arg type='ao' name='"DLR_INTERFACE_RENDERERS"'"
 	"           direction='out'/>"
 	"    </method>"
 	"    <method name='"DLR_INTERFACE_RESCAN"'>"

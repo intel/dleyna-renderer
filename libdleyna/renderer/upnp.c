@@ -411,12 +411,12 @@ GVariant *dlr_upnp_get_server_ids(dlr_upnp_t *upnp)
 
 	DLEYNA_LOG_DEBUG("Enter");
 
-	g_variant_builder_init(&vb, G_VARIANT_TYPE("as"));
+	g_variant_builder_init(&vb, G_VARIANT_TYPE("ao"));
 	g_hash_table_iter_init(&iter, upnp->server_udn_map);
 
 	while (g_hash_table_iter_next(&iter, NULL, &value)) {
 		device = value;
-		g_variant_builder_add(&vb, "s", device->path);
+		g_variant_builder_add(&vb, "o", device->path);
 	}
 
 	DLEYNA_LOG_DEBUG("Exit");
