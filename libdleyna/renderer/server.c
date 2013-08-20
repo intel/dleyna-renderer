@@ -136,10 +136,10 @@ static const gchar g_root_introspection[] =
 	"    <method name='"DLR_INTERFACE_RESCAN"'>"
 	"    </method>"
 	"    <signal name='"DLR_INTERFACE_FOUND_RENDERER"'>"
-	"      <arg type='s' name='"DLR_INTERFACE_PATH"'/>"
+	"      <arg type='o' name='"DLR_INTERFACE_PATH"'/>"
 	"    </signal>"
 	"    <signal name='"DLR_INTERFACE_LOST_RENDERER"'>"
-	"      <arg type='s' name='"DLR_INTERFACE_PATH"'/>"
+	"      <arg type='o' name='"DLR_INTERFACE_PATH"'/>"
 	"    </signal>"
 	"  </interface>"
 	"</node>";
@@ -949,7 +949,7 @@ static void prv_found_media_server(const gchar *path)
 					   DLEYNA_SERVER_OBJECT,
 					   DLEYNA_SERVER_INTERFACE_MANAGER,
 					   DLR_INTERFACE_FOUND_RENDERER,
-					   g_variant_new("(s)", path),
+					   g_variant_new("(o)", path),
 					   NULL);
 }
 
@@ -961,7 +961,7 @@ static void prv_lost_media_server(const gchar *path)
 					   DLEYNA_SERVER_OBJECT,
 					   DLEYNA_SERVER_INTERFACE_MANAGER,
 					   DLR_INTERFACE_LOST_RENDERER,
-					   g_variant_new("(s)", path),
+					   g_variant_new("(o)", path),
 					   NULL);
 
 	dleyna_task_processor_remove_queues_for_sink(g_context.processor, path);
