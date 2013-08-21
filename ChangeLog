@@ -1,3 +1,10 @@
+version 0.1.2
+	- Return object paths in GetRenderers() instead of strings
+	- Same update for FoundRenderer & LostRenderer signals
+
+version 0.1.1
+	- Do not require dbus and dleyna-connector-dbus at build time
+
 version 0.1.0
 	- Prepare for first stable branch
 
