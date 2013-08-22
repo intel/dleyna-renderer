@@ -156,6 +156,8 @@ class Manager(object):
         self.__manager = get_interface(ROOT_OBJECT_PATH, MANAGER_INTERFACE)
         self.__renderers = []
 
+        self._propsIF = get_interface(ROOT_OBJECT_PATH, PROPS_IF_NAME)
+
     def update_renderers(self):
         self.__renderers = self.__manager.GetRenderers()
 
@@ -204,6 +206,30 @@ class Manager(object):
 
     def rescan(self):
         self.__manager.Rescan()
+
+    def white_list_enable(self, enable):
+        self.__manager.WhiteListEnable(enable)
+
+    def white_list_add(self, entries):
+        self.__manager.WhiteListAddEntries(entries)
+
+    def white_list_remove(self, entries):
+        self.__manager.WhiteListRemoveEntries(entries)
+
+    def white_list_clear(self):
+        self.__manager.WhiteListClear()
+
+    def get_props(self, iface = ""):
+        return self._propsIF.GetAll(iface)
+
+    def get_prop(self, prop_name, iface = ""):
+        return self._propsIF.Get(iface, prop_name)
+
+    def print_prop(self, prop_name, iface = ""):
+        print_json(self._propsIF.Get(iface, prop_name))
+
+    def print_props(self, iface = ""):
+        print_json(self._propsIF.GetAll(iface))
 
 if __name__ == "__main__":
 

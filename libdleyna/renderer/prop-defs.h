@@ -29,6 +29,10 @@
 
 #define DLR_INTERFACE_PROPERTIES_CHANGED "PropertiesChanged"
 
+/* Manager Properties */
+#define DLR_INTERFACE_PROP_WHITE_LIST_ENTRIES "WhiteListEntries"
+#define DLR_INTERFACE_PROP_WHITE_LIST_ENABLED "WhiteListEnabled"
+
 #define DLR_INTERFACE_PROP_CAN_QUIT "CanQuit"
 #define DLR_INTERFACE_PROP_CAN_RAISE "CanRaise"
 #define DLR_INTERFACE_PROP_CAN_SET_FULLSCREEN "CanSetFullscreen"

@@ -846,3 +846,8 @@ void dlr_upnp_rescan(dlr_upnp_t *upnp)
 
 	gupnp_context_manager_rescan_control_points(upnp->context_manager);
 }
+
+GUPnPContextManager *dlr_upnp_get_context_manager(dlr_upnp_t *upnp)
+{
+	return upnp->context_manager;
+}
