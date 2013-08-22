@@ -38,6 +38,7 @@
 #include "async.h"
 #include "control-point-renderer.h"
 #include "device.h"
+#include "manager.h"
 #include "prop-defs.h"
 #include "server.h"
 #include "upnp.h"
@@ -52,6 +53,13 @@
 #define DLR_INTERFACE_GET_RENDERERS "GetRenderers"
 #define DLR_INTERFACE_RESCAN "Rescan"
 #define DLR_INTERFACE_RELEASE "Release"
+#define DLR_INTERFACE_WHITE_LIST_ENABLE "WhiteListEnable"
+#define DLR_INTERFACE_WHITE_LIST_ADD_ENTRIES "WhiteListAddEntries"
+#define DLR_INTERFACE_WHITE_LIST_REMOVE_ENTRIES "WhiteListRemoveEntries"
+#define DLR_INTERFACE_WHITE_LIST_CLEAR "WhiteListClear"
+
+#define DLR_INTERFACE_ENTRY_LIST "EntryList"
+#define DLR_INTERFACE_IS_ENABLED "IsEnabled"
 
 #define DLR_INTERFACE_FOUND_RENDERER "FoundRenderer"
 #define DLR_INTERFACE_LOST_RENDERER "LostRenderer"
@@ -107,15 +115,22 @@
 #define DLR_INTERFACE_MIME_TYPE "MimeType"
 #define DLR_INTERFACE_REQ_MIME_TYPE "RequestedMimeType"
 
+enum dlr_manager_interface_type_ {
+	DLR_MANAGER_INTERFACE_MANAGER,
+	DLR_MANAGER_INTERFACE_INFO_PROPERTIES,
+	DLR_MANAGER_INTERFACE_INFO_MAX
+};
+
 typedef struct dlr_context_t_ dlr_context_t;
 struct dlr_context_t_ {
-	guint dlr_id;
+	guint dlr_id[DLR_MANAGER_INTERFACE_INFO_MAX];
 	dleyna_connector_id_t connection;
 	guint watchers;
 	dleyna_task_processor_t *processor;
 	const dleyna_connector_t *connector;
 	dlr_upnp_t *upnp;
 	dleyna_settings_t *settings;
+	dlr_manager_t *manager;
 };
 
 static dlr_context_t g_context;
@@ -135,11 +150,51 @@ static const gchar g_root_introspection[] =
 	"    </method>"
 	"    <method name='"DLR_INTERFACE_RESCAN"'>"
 	"    </method>"
+	"    <method name='"DLR_INTERFACE_WHITE_LIST_ENABLE"'>"
+	"      <arg type='b' name='"DLR_INTERFACE_IS_ENABLED"'"
+	"           direction='in'/>"
+	"    </method>"
+	"    <method name='"DLR_INTERFACE_WHITE_LIST_ADD_ENTRIES"'>"
+	"      <arg type='as' name='"DLR_INTERFACE_ENTRY_LIST"'"
+	"           direction='in'/>"
+	"    </method>"
+	"    <method name='"DLR_INTERFACE_WHITE_LIST_REMOVE_ENTRIES"'>"
+	"      <arg type='as' name='"DLR_INTERFACE_ENTRY_LIST"'"
+	"           direction='in'/>"
+	"    </method>"
+	"    <method name='"DLR_INTERFACE_WHITE_LIST_CLEAR"'>"
+	"    </method>"
 	"    <signal name='"DLR_INTERFACE_FOUND_RENDERER"'>"
 	"      <arg type='o' name='"DLR_INTERFACE_PATH"'/>"
 	"    </signal>"
 	"    <signal name='"DLR_INTERFACE_LOST_RENDERER"'>"
 	"      <arg type='o' name='"DLR_INTERFACE_PATH"'/>"
+	"    </signal>"
+	"    <property type='as' name='"DLR_INTERFACE_PROP_WHITE_LIST_ENTRIES"'"
+	"       access='read'/>"
+	"    <property type='b' name='"DLR_INTERFACE_PROP_WHITE_LIST_ENABLED"'"
+	"       access='read'/>"
+	"  </interface>"
+	"  <interface name='"DLR_INTERFACE_PROPERTIES"'>"
+	"    <method name='"DLR_INTERFACE_GET"'>"
+	"      <arg type='s' name='"DLR_INTERFACE_INTERFACE_NAME"'"
+	"           direction='in'/>"
+	"      <arg type='s' name='"DLR_INTERFACE_PROPERTY_NAME"'"
+	"           direction='in'/>"
+	"      <arg type='v' name='"DLR_INTERFACE_VALUE"'"
+	"           direction='out'/>"
+	"    </method>"
+	"    <method name='"DLR_INTERFACE_GET_ALL"'>"
+	"      <arg type='s' name='"DLR_INTERFACE_INTERFACE_NAME"'"
+	"           direction='in'/>"
+	"      <arg type='a{sv}' name='"DLR_INTERFACE_PROPERTIES_VALUE"'"
+	"           direction='out'/>"
+	"    </method>"
+	"    <signal name='"DLR_INTERFACE_PROPERTIES_CHANGED"'>"
+	"      <arg type='s' name='"DLR_INTERFACE_INTERFACE_NAME"'/>"
+	"      <arg type='a{sv}' name='"DLR_INTERFACE_CHANGED_PROPERTIES"'/>"
+	"      <arg type='as' name='"
+	DLR_INTERFACE_INVALIDATED_PROPERTIES"'/>"
 	"    </signal>"
 	"  </interface>"
 	"</node>";
@@ -349,15 +404,29 @@ static const gchar g_server_introspection[] =
 	"  </interface>"
 	"</node>";
 
+static const gchar *g_manager_interfaces[DLR_MANAGER_INTERFACE_INFO_MAX] = {
+	/* MUST be in the exact same order as g_root_introspection */
+	DLEYNA_SERVER_INTERFACE_MANAGER,
+	DLR_INTERFACE_PROPERTIES
+};
+
 static void prv_process_task(dleyna_task_atom_t *task, gpointer user_data);
 
-static void prv_dlr_method_call(dleyna_connector_id_t conn,
-				const gchar *sender,
-				const gchar *object,
-				const gchar *interface,
-				const gchar *method,
-				GVariant *parameters,
-				dleyna_connector_msg_id_t invocation);
+static void prv_manager_root_method_call(dleyna_connector_id_t conn,
+					 const gchar *sender,
+					 const gchar *object,
+					 const gchar *interface,
+					 const gchar *method,
+					 GVariant *parameters,
+					 dleyna_connector_msg_id_t invocation);
+
+static void prv_manager_props_method_call(dleyna_connector_id_t conn,
+					  const gchar *sender,
+					  const gchar *object,
+					  const gchar *interface,
+					  const gchar *method,
+					  GVariant *parameters,
+					  dleyna_connector_msg_id_t invocation);
 
 static void prv_dlr_device_method_call(dleyna_connector_id_t conn,
 				       const gchar *sender,
@@ -400,8 +469,11 @@ static void prv_renderer_device_method_call(
 					GVariant *parameters,
 					dleyna_connector_msg_id_t invocation);
 
-static const dleyna_connector_dispatch_cb_t g_root_vtables[1] = {
-	prv_dlr_method_call
+static const dleyna_connector_dispatch_cb_t
+			g_root_vtables[DLR_MANAGER_INTERFACE_INFO_MAX] = {
+	/* MUST be in the exact same order as g_root_introspection */
+	prv_manager_root_method_call,
+	prv_manager_props_method_call
 };
 
 static const dleyna_connector_dispatch_cb_t
@@ -459,6 +531,22 @@ static void prv_process_sync_task(dlr_task_t *task)
 		break;
 	case DLR_TASK_RESCAN:
 		dlr_upnp_rescan(g_context.upnp);
+		dlr_task_complete(task);
+		break;
+	case DLR_TASK_WHITE_LIST_ENABLE:
+		dlr_manager_wl_enable(task);
+		dlr_task_complete(task);
+		break;
+	case DLR_TASK_WHITE_LIST_ADD_ENTRIES:
+		dlr_manager_wl_add_entries(task);
+		dlr_task_complete(task);
+		break;
+	case DLR_TASK_WHITE_LIST_REMOVE_ENTRIES:
+		dlr_manager_wl_remove_entries(task);
+		dlr_task_complete(task);
+		break;
+	case DLR_TASK_WHITE_LIST_CLEAR:
+		dlr_manager_wl_clear(task);
 		dlr_task_complete(task);
 		break;
 	case DLR_TASK_RAISE:
@@ -573,6 +661,14 @@ static void prv_process_async_task(dlr_task_t *task)
 		dlr_upnp_get_icon(g_context.upnp, task,
 				  prv_async_task_complete);
 		break;
+	case DLR_TASK_MANAGER_GET_PROP:
+		dlr_manager_get_prop(g_context.manager, task,
+				     prv_async_task_complete);
+		break;
+	case DLR_TASK_MANAGER_GET_ALL_PROPS:
+		dlr_manager_get_all_props(g_context.manager, task,
+					  prv_async_task_complete);
+		break;
 	default:
 		break;
 	}
@@ -635,16 +731,19 @@ static void prv_control_point_initialize(const dleyna_connector_t *connector,
 
 static void prv_control_point_stop_service(void)
 {
+	uint i;
+
 	if (g_context.upnp) {
 		dlr_upnp_unsubscribe(g_context.upnp);
 		dlr_upnp_delete(g_context.upnp);
 	}
 
 	if (g_context.connection) {
-		if (g_context.dlr_id)
-			g_context.connector->unpublish_object(
+		for (i = 0; i < DLR_MANAGER_INTERFACE_INFO_MAX; i++)
+			if (g_context.dlr_id[i])
+				g_context.connector->unpublish_object(
 							g_context.connection,
-							g_context.dlr_id);
+							g_context.dlr_id[i]);
 	}
 }
 
@@ -675,7 +774,8 @@ static void prv_add_task(dlr_task_t *task, const gchar *source,
 	dleyna_task_queue_add_task(queue_id, &task->atom);
 }
 
-static void prv_dlr_method_call(dleyna_connector_id_t conn,
+static void prv_manager_root_method_call(
+				dleyna_connector_id_t conn,
 				const gchar *sender, const gchar *object,
 				const gchar *interface,
 				const gchar *method, GVariant *parameters,
@@ -696,11 +796,57 @@ static void prv_dlr_method_call(dleyna_connector_id_t conn,
 			task = dlr_task_get_servers_new(invocation);
 		else if (!strcmp(method, DLR_INTERFACE_RESCAN))
 			task = dlr_task_rescan_new(invocation);
+		else if (!strcmp(method, DLR_INTERFACE_WHITE_LIST_ENABLE))
+			task = dlr_task_wl_enable_new(invocation,
+						      parameters);
+		else if (!strcmp(method, DLR_INTERFACE_WHITE_LIST_ADD_ENTRIES))
+			task = dlr_task_wl_add_entries_new(invocation,
+							   parameters);
+		else if (!strcmp(method,
+				 DLR_INTERFACE_WHITE_LIST_REMOVE_ENTRIES))
+			task = dlr_task_wl_remove_entries_new(invocation,
+							      parameters);
+		else if (!strcmp(method, DLR_INTERFACE_WHITE_LIST_CLEAR))
+			task = dlr_task_wl_clear_new(invocation);
 		else
 			goto finished;
 
 		prv_add_task(task, sender, DLR_RENDERER_SINK);
 	}
+
+finished:
+
+	return;
+}
+
+static void prv_manager_props_method_call(dleyna_connector_id_t conn,
+					  const gchar *sender,
+					  const gchar *object,
+					  const gchar *interface,
+					  const gchar *method,
+					  GVariant *parameters,
+					  dleyna_connector_msg_id_t invocation)
+{
+	dlr_task_t *task;
+	GError *error = NULL;
+
+	if (!strcmp(method, DLR_INTERFACE_GET_ALL))
+		task = dlr_task_manager_get_props_new(invocation, object,
+						      parameters, &error);
+	else if (!strcmp(method, DLR_INTERFACE_GET))
+		task = dlr_task_manager_get_prop_new(invocation, object,
+						     parameters, &error);
+	else
+		goto finished;
+
+	if (!task) {
+		g_context.connector->return_error(invocation, error);
+		g_error_free(error);
+
+		goto finished;
+	}
+
+	prv_add_task(task, sender, task->path);
 
 finished:
 
@@ -971,23 +1117,31 @@ static gboolean prv_control_point_start_service(
 					dleyna_connector_id_t connection)
 {
 	gboolean retval = TRUE;
+	uint i;
 
 	g_context.connection = connection;
 
-	g_context.dlr_id = g_context.connector->publish_object(
+	for (i = 0; i < DLR_MANAGER_INTERFACE_INFO_MAX; i++)
+		g_context.dlr_id[i] = g_context.connector->publish_object(
 						connection,
 						DLEYNA_SERVER_OBJECT,
 						TRUE,
-						DLEYNA_SERVER_INTERFACE_MANAGER,
-						g_root_vtables);
+						g_manager_interfaces[i],
+						g_root_vtables + i);
 
-	if (g_context.dlr_id)
+	if (g_context.dlr_id[DLR_MANAGER_INTERFACE_MANAGER]) {
 		g_context.upnp = dlr_upnp_new(connection,
 					     g_server_vtables,
 					     prv_found_media_server,
 					     prv_lost_media_server);
-	else
+
+		g_context.manager = dlr_manager_new(connection,
+			       dlr_upnp_get_context_manager(g_context.upnp));
+	} else {
 		retval = FALSE;
+	}
+
+	dleyna_settings_init_white_list(g_context.settings);
 
 	return retval;
 }
@@ -1021,4 +1175,3 @@ const dleyna_control_point_t *dleyna_control_point_get_renderer(void)
 {
 	return &g_control_point;
 }
-
