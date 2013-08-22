@@ -1,6 +1,6 @@
 libdleyna_rendererincdir = $(includedir)/dleyna-1.0/libdleyna/renderer
 
-DLEYNA_RENDERER_VERSION = 1:2:0
+DLEYNA_RENDERER_VERSION = 1:3:0
 
 AM_CFLAGS =	$(GLIB_CFLAGS)				\
 		$(GIO_CFLAGS)				\

@@ -1,3 +1,27 @@
+version 0.2.2
+	- Various build optimizations
+	- Fix a crash case when the server stops
+	- Code cleanup
+	- Documentation fixes
+	- GetAll: do not fail if the DMR returns an error for GetPositionInf
+	  https://github.com/01org/dleyna-renderer/issues/92
+	- Fix a crash case for Rescan()
+	- Fix #78: MPRIS OpenUri() does not start playing
+	  https://github.com/01org/dleyna-renderer/issues/78
+	- Add new SetUri API to Player
+	  https://github.com/01org/dleyna-renderer/issues/94
+	- Add OpenNextUri() method
+	  https://github.com/01org/dleyna-renderer/issues/35
+	- Handling of the publish_object() connector API change
+	- Fix bug #97 - dLeyna renderer can crash if renderer dissapears
+	  https://github.com/01org/dleyna-renderer/issues/97
+	- Enable byte seek
+	  https://github.com/01org/dleyna-renderer/issues/59
+	- Change GetRenderers() API as well as FoundRenderer/LostRenderer
+	  signals: use object paths instead of strings
+	  https://github.com/01org/dleyna-renderer/issues/110
+	- Add Network Filtering support
+
 version 0.1.0
 	- Prepare for first stable branch
 
