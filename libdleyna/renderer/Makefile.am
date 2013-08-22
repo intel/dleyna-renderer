@@ -25,6 +25,7 @@ libdleyna_renderer_1_0_la_SOURCES =	$(libdleyna_rendererinc_HEADERS) \
 					async.c				 \
 					device.c	 		 \
 					host-service.c			 \
+					manager.c			 \
 					server.c			 \
 					task.c		 		 \
 					upnp.c
@@ -58,6 +59,7 @@ EXTRA_DIST = 	$(sysconf_DATA)			\
 		device.h			\
 		host-service.h			\
 		prop-defs.h			\
+		manager.h			\
 		server.h			\
 		task.h				\
 		upnp.h
