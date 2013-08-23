@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
 	if (!prv_init_signal_handler(mask))
 		goto out;
 
-	retval = dleyna_main_loop_start(DLR_RENDERER_SERVICE_NAME,
+	retval = dleyna_main_loop_start(DLR_RENDERER_SERVICE_NAME, VERSION,
 					dleyna_control_point_get_renderer(),
 					NULL);
 
