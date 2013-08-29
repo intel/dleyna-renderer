@@ -1,3 +1,8 @@
+version 0.1.3
+	- Fixed bug dLeyna renderer can crash if renderer dissapears
+	  https://github.com/01org/dleyna-renderer/issues/97
+	- Ship the internal library in a private directory
+
 version 0.1.2
 	- Return object paths in GetRenderers() instead of strings
 	- Same update for FoundRenderer & LostRenderer signals
