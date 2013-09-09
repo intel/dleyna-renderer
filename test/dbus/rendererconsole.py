@@ -127,10 +127,10 @@ class Renderer(object):
         self.__playerIF.GotoTrack(trackID)
 
     def set_position(self, trackID, position):
-        self.__playerIF.setPosition(trackID, position)
+        self.__playerIF.SetPosition(trackID, position)
 
     def set_byte_position(self, trackID, position):
-        self.__playerIF.setBytePosition(trackID, position)
+        self.__playerIF.SetBytePosition(trackID, position)
 
     def stop(self):
         self.__playerIF.Stop()
