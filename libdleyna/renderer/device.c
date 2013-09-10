@@ -2898,9 +2898,9 @@ void dlr_device_set_position(dlr_device_t *device, dlr_task_t *task,
 			     dlr_upnp_task_complete_t cb)
 {
 	if (task->type == DLR_TASK_SET_POSITION)
-		prv_device_set_position(device, task,  "ABS_TIME", cb);
+		prv_device_set_position(device, task,  "REL_TIME", cb);
 	else
-		prv_device_set_position(device, task,  "ABS_COUNT", cb);
+		prv_device_set_position(device, task,  "X_DLNA_REL_BYTE", cb);
 }
 
 void dlr_device_goto_track(dlr_device_t *device, dlr_task_t *task,
