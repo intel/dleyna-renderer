@@ -344,8 +344,8 @@ ByteSeek(x Offset) -> void
 SetBytePosition(o TrackID, x Position) -> void
 
 Same as Seek and SetPosition but last parameter (Offset and Position) is not
-expressed in second but in byte, and allows to set the seekmode to respectively
-“REL_COUNT” and “ABS_COUNT” . New in version 0.2.1
+expressed in second but in byte, and allows to set the seekmode by using
+“X_DLNA_REL_BYTE” unit. New in version 0.2.1
 
 
 org.mpris.MediaPlayer2.TrackList and org.mpris.MediaPlayer2.Playlists
