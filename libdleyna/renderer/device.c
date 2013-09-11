@@ -1786,8 +1786,6 @@ on_error:
 
 out:
 
-	g_free(result);
-
 	if (error != NULL)
 		g_error_free(error);
 
@@ -3033,28 +3031,95 @@ static void prv_device_set_position(dlr_device_t *device, dlr_task_t *task,
 	g_free(position);
 }
 
+static void prv_complete_seek_get_position(GUPnPServiceProxy *proxy,
+					   GUPnPServiceProxyAction *action,
+					   gpointer user_data)
+{
+	gchar *result = NULL;
+	const gchar *message;
+	gboolean end;
+	GError *error = NULL;
+	dlr_async_task_t *cb_data = user_data;
+	dlr_task_t *task = &cb_data->task;
+	dlr_task_seek_t *seek_data = &task->ut.seek;
+	guint64 count;
+
+	end = gupnp_service_proxy_end_action(
+					proxy, action, &error,
+					(task->type == DLR_TASK_SEEK) ?
+						"RelTime" : "RelByte",
+					G_TYPE_STRING, &result,
+					NULL);
+
+	if (!end || (result == NULL))
+		goto on_error;
+
+	g_strstrip(result);
+
+	if (task->type == DLR_TASK_SEEK) {
+		seek_data->position += prv_duration_to_int64(result);
+
+		prv_device_set_position(cb_data->device, task,
+					"REL_TIME", cb_data->cb);
+	} else {
+		count = strtoull(result, NULL, 10);
+
+		seek_data->counter_position += count;
+
+		prv_device_set_position(cb_data->device, task,
+					"X_DLNA_REL_BYTE", cb_data->cb);
+	}
+
+	goto on_exit;
+
+on_error:
+
+	message = (error != NULL) ? error->message : "Invalid result";
+	cb_data->error =
+		g_error_new(
+			DLEYNA_SERVER_ERROR,
+			DLEYNA_ERROR_OPERATION_FAILED,
+			"%s operation failed: %s",
+			(task->type == DLR_TASK_SEEK) ?
+			       "GetPositionInfo" : "X_DLNA_GetBytePositionInfo",
+			message);
+
+	(void) g_idle_add(dlr_async_task_complete, task);
+	g_cancellable_disconnect(cb_data->cancellable, cb_data->cancel_id);
+
+on_exit:
+
+	if (error != NULL)
+		g_error_free(error);
+}
+
 void dlr_device_seek(dlr_device_t *device, dlr_task_t *task,
 		     dlr_upnp_task_complete_t cb)
 {
-	if (task->type == DLR_TASK_SEEK)
-		prv_device_set_position(device, task,  "REL_TIME", cb);
-	else
-		prv_device_set_position(device, task,  "REL_COUNT", cb);
+	dlr_async_task_t *cb_data = (dlr_async_task_t *)task;
+
+	cb_data->cb = cb;
+	cb_data->device = device;
+
+	prv_get_position_info(cb_data,
+			      (task->type == DLR_TASK_SEEK) ?
+			      "GetPositionInfo" : "X_DLNA_GetBytePositionInfo",
+			      prv_complete_seek_get_position);
 }
 
 void dlr_device_set_position(dlr_device_t *device, dlr_task_t *task,
 			     dlr_upnp_task_complete_t cb)
 {
 	if (task->type == DLR_TASK_SET_POSITION)
-		prv_device_set_position(device, task,  "REL_TIME", cb);
+		prv_device_set_position(device, task, "REL_TIME", cb);
 	else
-		prv_device_set_position(device, task,  "X_DLNA_REL_BYTE", cb);
+		prv_device_set_position(device, task, "X_DLNA_REL_BYTE", cb);
 }
 
 void dlr_device_goto_track(dlr_device_t *device, dlr_task_t *task,
 			   dlr_upnp_task_complete_t cb)
 {
-	prv_device_set_position(device, task,  "TRACK_NR", cb);
+	prv_device_set_position(device, task, "TRACK_NR", cb);
 }
 
 void dlr_device_host_uri(dlr_device_t *device, dlr_task_t *task,
