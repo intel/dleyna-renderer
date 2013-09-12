@@ -208,22 +208,29 @@ class Manager(object):
         self.__manager.Rescan()
 
     def white_list_enable(self, enable):
-        self.__manager.WhiteListEnable(enable)
+        self.set_prop("WhiteListEnabled", enable)
 
     def white_list_add(self, entries):
-        self.__manager.WhiteListAddEntries(entries)
+	white_list = set(self.get_prop('WhiteListEntries'))
+	white_list = (white_list | set(entries)) - set('')
+        self.set_prop("WhiteListEntries", list(white_list))
 
     def white_list_remove(self, entries):
-        self.__manager.WhiteListRemoveEntries(entries)
+	white_list = set(self.get_prop('WhiteListEntries'))
+	white_list = white_list - set(entries)
+        self.set_prop("WhiteListEntries", list(white_list))
 
     def white_list_clear(self):
-        self.__manager.WhiteListClear()
+        self.set_prop("WhiteListEntries", [''])
 
     def get_props(self, iface = ""):
         return self._propsIF.GetAll(iface)
 
     def get_prop(self, prop_name, iface = ""):
         return self._propsIF.Get(iface, prop_name)
+
+    def set_prop(self, prop_name, val, iface = ""):
+        return self._propsIF.Set(iface, prop_name, val)
 
     def print_prop(self, prop_name, iface = ""):
         print_json(self._propsIF.Get(iface, prop_name))

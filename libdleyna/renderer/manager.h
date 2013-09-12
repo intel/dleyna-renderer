@@ -24,6 +24,7 @@
 #define DLR_MANAGER_H__
 
 #include <libdleyna/core/connector.h>
+#include <libdleyna/core/settings.h>
 #include <libgupnp/gupnp-context-manager.h>
 
 #include "task.h"
@@ -36,19 +37,20 @@ dlr_manager_t *dlr_manager_new(dleyna_connector_id_t connection,
 
 void dlr_manager_delete(dlr_manager_t *manager);
 
-void dlr_manager_wl_enable(dlr_task_t *task);
-
-void dlr_manager_wl_add_entries(dlr_task_t *task);
-
-void dlr_manager_wl_remove_entries(dlr_task_t *task);
-
-void dlr_manager_wl_clear(dlr_task_t *task);
+dleyna_white_list_t *dlr_manager_get_white_list(dlr_manager_t *manager);
 
 void dlr_manager_get_all_props(dlr_manager_t *manager,
+			       dleyna_settings_t *settings,
 			       dlr_task_t *task,
 			       dlr_manager_task_complete_t cb);
 
 void dlr_manager_get_prop(dlr_manager_t *manager,
+			  dleyna_settings_t *settings,
+			  dlr_task_t *task,
+			  dlr_manager_task_complete_t cb);
+
+void dlr_manager_set_prop(dlr_manager_t *manager,
+			  dleyna_settings_t *settings,
 			  dlr_task_t *task,
 			  dlr_manager_task_complete_t cb);
 
