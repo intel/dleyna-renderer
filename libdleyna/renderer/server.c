@@ -34,6 +34,7 @@
 #include <libdleyna/core/error.h>
 #include <libdleyna/core/log.h>
 #include <libdleyna/core/task-processor.h>
+#include <libdleyna/core/white-list.h>
 
 #include "async.h"
 #include "control-point-renderer.h"
@@ -150,20 +151,6 @@ static const gchar g_root_introspection[] =
 	"    </method>"
 	"    <method name='"DLR_INTERFACE_RESCAN"'>"
 	"    </method>"
-	"    <method name='"DLR_INTERFACE_WHITE_LIST_ENABLE"'>"
-	"      <arg type='b' name='"DLR_INTERFACE_IS_ENABLED"'"
-	"           direction='in'/>"
-	"    </method>"
-	"    <method name='"DLR_INTERFACE_WHITE_LIST_ADD_ENTRIES"'>"
-	"      <arg type='as' name='"DLR_INTERFACE_ENTRY_LIST"'"
-	"           direction='in'/>"
-	"    </method>"
-	"    <method name='"DLR_INTERFACE_WHITE_LIST_REMOVE_ENTRIES"'>"
-	"      <arg type='as' name='"DLR_INTERFACE_ENTRY_LIST"'"
-	"           direction='in'/>"
-	"    </method>"
-	"    <method name='"DLR_INTERFACE_WHITE_LIST_CLEAR"'>"
-	"    </method>"
 	"    <signal name='"DLR_INTERFACE_FOUND_RENDERER"'>"
 	"      <arg type='o' name='"DLR_INTERFACE_PATH"'/>"
 	"    </signal>"
@@ -171,9 +158,9 @@ static const gchar g_root_introspection[] =
 	"      <arg type='o' name='"DLR_INTERFACE_PATH"'/>"
 	"    </signal>"
 	"    <property type='as' name='"DLR_INTERFACE_PROP_WHITE_LIST_ENTRIES"'"
-	"       access='read'/>"
+	"       access='readwrite'/>"
 	"    <property type='b' name='"DLR_INTERFACE_PROP_WHITE_LIST_ENABLED"'"
-	"       access='read'/>"
+	"       access='readwrite'/>"
 	"  </interface>"
 	"  <interface name='"DLR_INTERFACE_PROPERTIES"'>"
 	"    <method name='"DLR_INTERFACE_GET"'>"
@@ -189,6 +176,14 @@ static const gchar g_root_introspection[] =
 	"           direction='in'/>"
 	"      <arg type='a{sv}' name='"DLR_INTERFACE_PROPERTIES_VALUE"'"
 	"           direction='out'/>"
+	"    </method>"
+	"    <method name='"DLR_INTERFACE_SET"'>"
+	"      <arg type='s' name='"DLR_INTERFACE_INTERFACE_NAME"'"
+	"           direction='in'/>"
+	"      <arg type='s' name='"DLR_INTERFACE_PROPERTY_NAME"'"
+	"           direction='in'/>"
+	"      <arg type='v' name='"DLR_INTERFACE_VALUE"'"
+	"           direction='in'/>"
 	"    </method>"
 	"    <signal name='"DLR_INTERFACE_PROPERTIES_CHANGED"'>"
 	"      <arg type='s' name='"DLR_INTERFACE_INTERFACE_NAME"'/>"
@@ -533,22 +528,6 @@ static void prv_process_sync_task(dlr_task_t *task)
 		dlr_upnp_rescan(g_context.upnp);
 		dlr_task_complete(task);
 		break;
-	case DLR_TASK_WHITE_LIST_ENABLE:
-		dlr_manager_wl_enable(task);
-		dlr_task_complete(task);
-		break;
-	case DLR_TASK_WHITE_LIST_ADD_ENTRIES:
-		dlr_manager_wl_add_entries(task);
-		dlr_task_complete(task);
-		break;
-	case DLR_TASK_WHITE_LIST_REMOVE_ENTRIES:
-		dlr_manager_wl_remove_entries(task);
-		dlr_task_complete(task);
-		break;
-	case DLR_TASK_WHITE_LIST_CLEAR:
-		dlr_manager_wl_clear(task);
-		dlr_task_complete(task);
-		break;
 	case DLR_TASK_RAISE:
 	case DLR_TASK_QUIT:
 		error = g_error_new(DLEYNA_SERVER_ERROR,
@@ -662,12 +641,16 @@ static void prv_process_async_task(dlr_task_t *task)
 				  prv_async_task_complete);
 		break;
 	case DLR_TASK_MANAGER_GET_PROP:
-		dlr_manager_get_prop(g_context.manager, task,
-				     prv_async_task_complete);
+		dlr_manager_get_prop(g_context.manager, g_context.settings,
+				     task, prv_async_task_complete);
 		break;
 	case DLR_TASK_MANAGER_GET_ALL_PROPS:
-		dlr_manager_get_all_props(g_context.manager, task,
-					  prv_async_task_complete);
+		dlr_manager_get_all_props(g_context.manager, g_context.settings,
+					  task, prv_async_task_complete);
+		break;
+	case DLR_TASK_MANAGER_SET_PROP:
+		dlr_manager_set_prop(g_context.manager, g_context.settings,
+				     task, prv_async_task_complete);
 		break;
 	default:
 		break;
@@ -796,18 +779,6 @@ static void prv_manager_root_method_call(
 			task = dlr_task_get_servers_new(invocation);
 		else if (!strcmp(method, DLR_INTERFACE_RESCAN))
 			task = dlr_task_rescan_new(invocation);
-		else if (!strcmp(method, DLR_INTERFACE_WHITE_LIST_ENABLE))
-			task = dlr_task_wl_enable_new(invocation,
-						      parameters);
-		else if (!strcmp(method, DLR_INTERFACE_WHITE_LIST_ADD_ENTRIES))
-			task = dlr_task_wl_add_entries_new(invocation,
-							   parameters);
-		else if (!strcmp(method,
-				 DLR_INTERFACE_WHITE_LIST_REMOVE_ENTRIES))
-			task = dlr_task_wl_remove_entries_new(invocation,
-							      parameters);
-		else if (!strcmp(method, DLR_INTERFACE_WHITE_LIST_CLEAR))
-			task = dlr_task_wl_clear_new(invocation);
 		else
 			goto finished;
 
@@ -835,6 +806,9 @@ static void prv_manager_props_method_call(dleyna_connector_id_t conn,
 						      parameters, &error);
 	else if (!strcmp(method, DLR_INTERFACE_GET))
 		task = dlr_task_manager_get_prop_new(invocation, object,
+						     parameters, &error);
+	else if (!strcmp(method, DLR_INTERFACE_SET))
+		task = dlr_task_manager_set_prop_new(invocation, object,
 						     parameters, &error);
 	else
 		goto finished;
@@ -1113,6 +1087,25 @@ static void prv_lost_media_server(const gchar *path)
 	dleyna_task_processor_remove_queues_for_sink(g_context.processor, path);
 }
 
+static void prv_white_list_init(void)
+{
+	gboolean enabled;
+	GVariant *entries;
+	dleyna_white_list_t *wl;
+
+	DLEYNA_LOG_DEBUG("Enter");
+
+	enabled = dleyna_settings_is_white_list_enabled(g_context.settings);
+	entries = dleyna_settings_white_list_entries(g_context.settings);
+
+	wl = dlr_manager_get_white_list(g_context.manager);
+
+	dleyna_white_list_enable(wl, enabled);
+	dleyna_white_list_add_entries(wl, entries);
+
+	DLEYNA_LOG_DEBUG("Exit");
+}
+
 static gboolean prv_control_point_start_service(
 					dleyna_connector_id_t connection)
 {
@@ -1136,12 +1129,12 @@ static gboolean prv_control_point_start_service(
 					     prv_lost_media_server);
 
 		g_context.manager = dlr_manager_new(connection,
-			       dlr_upnp_get_context_manager(g_context.upnp));
+					       dlr_upnp_get_context_manager(
+							g_context.upnp));
+		prv_white_list_init();
 	} else {
 		retval = FALSE;
 	}
-
-	dleyna_settings_init_white_list(g_context.settings);
 
 	return retval;
 }

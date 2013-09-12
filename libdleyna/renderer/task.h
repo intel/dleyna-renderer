@@ -55,12 +55,9 @@ enum dlr_task_type_t_ {
 	DLR_TASK_HOST_URI,
 	DLR_TASK_REMOVE_URI,
 	DLR_TASK_GET_ICON,
-	DLR_TASK_WHITE_LIST_ENABLE,
-	DLR_TASK_WHITE_LIST_ADD_ENTRIES,
-	DLR_TASK_WHITE_LIST_REMOVE_ENTRIES,
-	DLR_TASK_WHITE_LIST_CLEAR,
 	DLR_TASK_MANAGER_GET_ALL_PROPS,
-	DLR_TASK_MANAGER_GET_PROP
+	DLR_TASK_MANAGER_GET_PROP,
+	DLR_TASK_MANAGER_SET_PROP
 };
 typedef enum dlr_task_type_t_ dlr_task_type_t;
 
@@ -112,12 +109,6 @@ struct dlr_task_get_icon_t_ {
 	gchar *resolution;
 };
 
-typedef struct dlr_task_white_list_t_ dlr_task_white_list_t;
-struct dlr_task_white_list_t_ {
-	gboolean enabled;
-	GVariant *entries;
-};
-
 typedef struct dlr_task_t_ dlr_task_t;
 struct dlr_task_t_ {
 	dleyna_task_atom_t atom; /* pseudo inheritance - MUST be first field */
@@ -136,7 +127,6 @@ struct dlr_task_t_ {
 		dlr_task_host_uri_t host_uri;
 		dlr_task_seek_t seek;
 		dlr_task_get_icon_t get_icon;
-		dlr_task_white_list_t white_list;
 	} ut;
 };
 
@@ -216,17 +206,6 @@ dlr_task_t *dlr_task_remove_uri_new(dleyna_connector_msg_id_t invocation,
 dlr_task_t *dlr_task_get_icon_new(dleyna_connector_msg_id_t invocation,
 				  const gchar *path, GVariant *parameters);
 
-dlr_task_t *dlr_task_wl_enable_new(dleyna_connector_msg_id_t invocation,
-				   GVariant *parameters);
-
-dlr_task_t *dlr_task_wl_clear_new(dleyna_connector_msg_id_t invocation);
-
-dlr_task_t *dlr_task_wl_add_entries_new(dleyna_connector_msg_id_t invocation,
-					GVariant *parameters);
-
-dlr_task_t *dlr_task_wl_remove_entries_new(dleyna_connector_msg_id_t invocation,
-					   GVariant *parameters);
-
 dlr_task_t *dlr_task_manager_get_prop_new(dleyna_connector_msg_id_t invocation,
 					  const gchar *path,
 					  GVariant *parameters,
@@ -236,6 +215,11 @@ dlr_task_t *dlr_task_manager_get_props_new(dleyna_connector_msg_id_t invocation,
 					   const gchar *path,
 					   GVariant *parameters,
 					   GError **error);
+
+dlr_task_t *dlr_task_manager_set_prop_new(dleyna_connector_msg_id_t invocation,
+					  const gchar *path,
+					  GVariant *parameters,
+					  GError **error);
 
 void dlr_task_complete(dlr_task_t *task);
 

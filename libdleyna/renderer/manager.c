@@ -36,60 +36,45 @@
 struct dlr_manager_t_ {
 	dleyna_connector_id_t connection;
 	GUPnPContextManager *cm;
+	dleyna_white_list_t *wl;
 };
 
-static void prv_add_list_wl_entries(gpointer data, gpointer user_data)
+static GVariant *prv_build_wl_entries(dleyna_settings_t *settings)
 {
-	GVariantBuilder *vb = (GVariantBuilder *)user_data;
-	gchar *entry = (gchar *)data;
+	GVariant *result;
 
-	g_variant_builder_add(vb, "s",  entry);
+	result = dleyna_settings_white_list_entries(settings);
+
+	if (result == NULL)
+		result = g_variant_new("as", NULL);
+
+	return result;
 }
 
-static void prv_add_all_props(GUPnPContextManager *manager, GVariantBuilder *vb)
+static void prv_add_all_props(dleyna_settings_t *settings, GVariantBuilder *vb)
 {
-	GUPnPWhiteList *wl;
-	GList *list;
-	GVariantBuilder vb2;
-
-	wl = gupnp_context_manager_get_white_list(manager);
-	list = gupnp_white_list_get_entries(wl);
-
 	g_variant_builder_add(vb, "{sv}", DLR_INTERFACE_PROP_WHITE_LIST_ENABLED,
 			      g_variant_new_boolean(
-					gupnp_white_list_get_enabled(wl)));
-
-	g_variant_builder_init(&vb2, G_VARIANT_TYPE("as"));
-	g_list_foreach(list, prv_add_list_wl_entries, &vb2);
+					dleyna_settings_is_white_list_enabled(
+								settings)));
 
 	g_variant_builder_add(vb, "{sv}", DLR_INTERFACE_PROP_WHITE_LIST_ENTRIES,
-			      g_variant_builder_end(&vb2));
+			      prv_build_wl_entries(settings));
 }
 
-static GVariant *prv_get_prop(GUPnPContextManager *manager, const gchar *prop)
+static GVariant *prv_get_prop(dleyna_settings_t *settings, const gchar *prop)
 {
 	GVariant *retval = NULL;
-	GUPnPWhiteList *wl;
-	GVariantBuilder vb;
-	GList *list;
-	gboolean b_value;
 #if DLEYNA_LOG_LEVEL & DLEYNA_LOG_LEVEL_DEBUG
 	gchar *prop_str;
 #endif
 
-	wl = gupnp_context_manager_get_white_list(manager);
-
-	if (!strcmp(prop, DLR_INTERFACE_PROP_WHITE_LIST_ENABLED)) {
-		b_value = gupnp_white_list_get_enabled(wl);
-		retval = g_variant_ref_sink(g_variant_new_boolean(b_value));
-
-	} else if (!strcmp(prop, DLR_INTERFACE_PROP_WHITE_LIST_ENTRIES)) {
-		list = gupnp_white_list_get_entries(wl);
-
-		g_variant_builder_init(&vb, G_VARIANT_TYPE("as"));
-		g_list_foreach(list, prv_add_list_wl_entries, &vb);
-		retval = g_variant_ref_sink(g_variant_builder_end(&vb));
-	}
+	if (!strcmp(prop, DLR_INTERFACE_PROP_WHITE_LIST_ENABLED))
+		retval = g_variant_ref_sink(g_variant_new_boolean(
+					dleyna_settings_is_white_list_enabled(
+								settings)));
+	else if (!strcmp(prop, DLR_INTERFACE_PROP_WHITE_LIST_ENTRIES))
+		retval = g_variant_ref_sink(prv_build_wl_entries(settings));
 
 #if DLEYNA_LOG_LEVEL & DLEYNA_LOG_LEVEL_DEBUG
 	if (retval) {
@@ -102,13 +87,12 @@ static GVariant *prv_get_prop(GUPnPContextManager *manager, const gchar *prop)
 	return retval;
 }
 
-static void prv_wl_notify_prop(dlr_manager_t *manager, const gchar *prop_name)
+static void prv_wl_notify_prop(dlr_manager_t *manager,
+			       const gchar *prop_name,
+			       GVariant *prop_val)
 {
-	GVariant *prop_val;
 	GVariant *val;
 	GVariantBuilder array;
-
-	prop_val = prv_get_prop(manager->cm, prop_name);
 
 	g_variant_builder_init(&array, G_VARIANT_TYPE("a{sv}"));
 	g_variant_builder_add(&array, "{sv}", prop_name, prop_val);
@@ -124,36 +108,19 @@ static void prv_wl_notify_prop(dlr_manager_t *manager, const gchar *prop_name)
 					DLR_INTERFACE_PROPERTIES_CHANGED,
 					val,
 					NULL);
-	g_variant_unref(prop_val);
-}
-
-static void prv_wl_notify_enabled_prop(gpointer user_data)
-{
-	prv_wl_notify_prop((dlr_manager_t *)user_data,
-			   DLR_INTERFACE_PROP_WHITE_LIST_ENABLED);
-}
-
-static void prv_wl_notify_entries_prop(gpointer user_data)
-{
-	prv_wl_notify_prop((dlr_manager_t *)user_data,
-			   DLR_INTERFACE_PROP_WHITE_LIST_ENTRIES);
 }
 
 dlr_manager_t *dlr_manager_new(dleyna_connector_id_t connection,
 			       GUPnPContextManager *connection_manager)
 {
 	dlr_manager_t *manager = g_new0(dlr_manager_t, 1);
-	dleyna_white_list_t wl_info;
+	GUPnPWhiteList *gupnp_wl;
+
+	gupnp_wl = gupnp_context_manager_get_white_list(connection_manager);
 
 	manager->connection = connection;
 	manager->cm = connection_manager;
-
-	wl_info.wl = gupnp_context_manager_get_white_list(manager->cm);
-	wl_info.cb_enabled = prv_wl_notify_enabled_prop;
-	wl_info.cb_entries = prv_wl_notify_entries_prop;
-	wl_info.user_data = manager;
-
-	dleyna_white_list_set_info(&wl_info);
+	manager->wl = dleyna_white_list_new(gupnp_wl);
 
 	return manager;
 }
@@ -161,56 +128,37 @@ dlr_manager_t *dlr_manager_new(dleyna_connector_id_t connection,
 void dlr_manager_delete(dlr_manager_t *manager)
 {
 	if (manager != NULL) {
-		dleyna_white_list_set_info(NULL);
+		dleyna_white_list_delete(manager->wl);
 		g_free(manager);
 	}
 }
 
-void dlr_manager_wl_enable(dlr_task_t *task)
+dleyna_white_list_t *dlr_manager_get_white_list(dlr_manager_t *manager)
 {
-	dleyna_white_list_enable(task->ut.white_list.enabled, TRUE);
-}
-
-void dlr_manager_wl_add_entries(dlr_task_t *task)
-{
-	dleyna_white_list_add_entries(task->ut.white_list.entries, TRUE);
-}
-
-void dlr_manager_wl_remove_entries(dlr_task_t *task)
-{
-	dleyna_white_list_remove_entries(task->ut.white_list.entries, TRUE);
-}
-
-void dlr_manager_wl_clear(dlr_task_t *task)
-{
-	dleyna_white_list_clear(TRUE);
+	return manager->wl;
 }
 
 void dlr_manager_get_all_props(dlr_manager_t *manager,
+			       dleyna_settings_t *settings,
 			       dlr_task_t *task,
 			       dlr_manager_task_complete_t cb)
 {
 	dlr_async_task_t *cb_data = (dlr_async_task_t *)task;
 	dlr_task_get_props_t *task_data = &task->ut.get_props;
+	gchar *i_name = task_data->interface_name;
 	GVariantBuilder vb;
 
 	DLEYNA_LOG_DEBUG("Enter");
 	DLEYNA_LOG_DEBUG("Path: %s", task->path);
-	DLEYNA_LOG_DEBUG("Interface %s", task->ut.get_prop.interface_name);
+	DLEYNA_LOG_DEBUG("Interface %s", i_name);
 
 	cb_data->cb = cb;
 
 	g_variant_builder_init(&vb, G_VARIANT_TYPE("a{sv}"));
 
-	if (!strcmp(task_data->interface_name,
-		    DLEYNA_SERVER_INTERFACE_MANAGER) ||
-	    !strcmp(task_data->interface_name, "")) {
-		cb_data->cancel_id = g_cancellable_connect(
-					cb_data->cancellable,
-					G_CALLBACK(dlr_async_task_cancelled),
-					cb_data, NULL);
-
-		prv_add_all_props(manager->cm, &vb);
+	if (!strcmp(i_name, DLEYNA_SERVER_INTERFACE_MANAGER) ||
+	    !strcmp(i_name, "")) {
+		prv_add_all_props(settings, &vb);
 
 		cb_data->task.result = g_variant_ref_sink(
 						g_variant_builder_end(&vb));
@@ -223,35 +171,30 @@ void dlr_manager_get_all_props(dlr_manager_t *manager,
 	}
 
 	(void) g_idle_add(dlr_async_task_complete, cb_data);
-	g_cancellable_disconnect(cb_data->cancellable, cb_data->cancel_id);
 
 	DLEYNA_LOG_DEBUG("Exit");
 }
 
 void dlr_manager_get_prop(dlr_manager_t *manager,
+			  dleyna_settings_t *settings,
 			  dlr_task_t *task,
 			  dlr_manager_task_complete_t cb)
 {
 	dlr_async_task_t *cb_data = (dlr_async_task_t *)task;
 	dlr_task_get_prop_t *task_data = &task->ut.get_prop;
+	gchar *i_name = task_data->interface_name;
+	gchar *name = task_data->prop_name;
 
 	DLEYNA_LOG_DEBUG("Enter");
 	DLEYNA_LOG_DEBUG("Path: %s", task->path);
-	DLEYNA_LOG_DEBUG("Interface %s", task->ut.get_prop.interface_name);
-	DLEYNA_LOG_DEBUG("Prop.%s", task->ut.get_prop.prop_name);
+	DLEYNA_LOG_DEBUG("Interface %s", i_name);
+	DLEYNA_LOG_DEBUG("Prop.%s", name);
 
 	cb_data->cb = cb;
 
-	if (!strcmp(task_data->interface_name,
-		    DLEYNA_SERVER_INTERFACE_MANAGER) ||
-	    !strcmp(task_data->interface_name, "")) {
-		cb_data->cancel_id = g_cancellable_connect(
-					cb_data->cancellable,
-					G_CALLBACK(dlr_async_task_cancelled),
-					cb_data, NULL);
-
-		cb_data->task.result = prv_get_prop(manager->cm,
-						    task_data->prop_name);
+	if (!strcmp(i_name, DLEYNA_SERVER_INTERFACE_MANAGER) ||
+	    !strcmp(i_name, "")) {
+		cb_data->task.result = prv_get_prop(settings, name);
 
 		if (!cb_data->task.result)
 			cb_data->error = g_error_new(
@@ -267,7 +210,119 @@ void dlr_manager_get_prop(dlr_manager_t *manager,
 	}
 
 	(void) g_idle_add(dlr_async_task_complete, cb_data);
-	g_cancellable_disconnect(cb_data->cancellable, cb_data->cancel_id);
 
+	DLEYNA_LOG_DEBUG("Exit");
+}
+
+static void prv_set_prop_wl_enabled(dlr_manager_t *manager,
+				    dleyna_settings_t *settings,
+				    gboolean enabled,
+				    GError **error)
+{
+	GVariant *prop_val;
+	gboolean old_val;
+
+	DLEYNA_LOG_DEBUG("Enter %d", enabled);
+
+	old_val = dleyna_settings_is_white_list_enabled(settings);
+
+	if (old_val == enabled)
+		goto exit;
+
+	/* If no error, the white list will be updated in the reload callack
+	 */
+	dleyna_settings_set_white_list_enabled(settings, enabled, error);
+
+	if (*error == NULL) {
+		dleyna_white_list_enable(manager->wl, enabled);
+		prop_val = g_variant_new_boolean(enabled);
+		prv_wl_notify_prop(manager,
+				   DLR_INTERFACE_PROP_WHITE_LIST_ENABLED,
+				   prop_val);
+	}
+
+exit:
+	DLEYNA_LOG_DEBUG("Exit");
+	return;
+}
+
+static void prv_set_prop_wl_entries(dlr_manager_t *manager,
+				    dleyna_settings_t *settings,
+				    GVariant *entries,
+				    GError **error)
+{
+	DLEYNA_LOG_DEBUG("Enter");
+
+	if (strcmp(g_variant_get_type_string(entries), "as")) {
+		DLEYNA_LOG_WARNING("Invalid parameter type. 'as' expected.");
+
+		*error = g_error_new(DLEYNA_SERVER_ERROR,
+				     DLEYNA_ERROR_BAD_QUERY,
+				     "Invalid parameter type. 'as' expected.");
+		goto exit;
+	}
+
+	/* If no error, the white list will be updated in the reload callack
+	 * callack
+	 */
+	dleyna_settings_set_white_list_entries(settings, entries, error);
+
+	if (*error == NULL) {
+		dleyna_white_list_clear(manager->wl);
+		dleyna_white_list_add_entries(manager->wl, entries);
+
+		prv_wl_notify_prop(manager,
+				   DLR_INTERFACE_PROP_WHITE_LIST_ENTRIES,
+				   entries);
+	}
+exit:
+	DLEYNA_LOG_DEBUG("Exit");
+}
+
+void dlr_manager_set_prop(dlr_manager_t *manager,
+			  dleyna_settings_t *settings,
+			  dlr_task_t *task,
+			  dlr_manager_task_complete_t cb)
+{
+	dlr_async_task_t *cb_data = (dlr_async_task_t *)task;
+	dlr_task_set_prop_t *task_data = &task->ut.set_prop;
+	GVariant *param = task_data->params;
+	gchar *name = task_data->prop_name;
+	gchar *i_name = task_data->interface_name;
+	GError *error = NULL;
+
+	DLEYNA_LOG_DEBUG("Enter");
+	DLEYNA_LOG_DEBUG("Path: %s", task->path);
+	DLEYNA_LOG_DEBUG("Interface %s", i_name);
+	DLEYNA_LOG_DEBUG("Prop.%s", name);
+
+	cb_data->cb = cb;
+
+	if (strcmp(i_name, DLEYNA_SERVER_INTERFACE_MANAGER) &&
+	    strcmp(i_name, "")) {
+		DLEYNA_LOG_WARNING("Interface is unknown.");
+
+		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
+					     DLEYNA_ERROR_UNKNOWN_INTERFACE,
+					     "Interface is unknown.");
+		goto exit;
+	}
+
+	if (!strcmp(name, DLR_INTERFACE_PROP_WHITE_LIST_ENABLED))
+		prv_set_prop_wl_enabled(manager, settings,
+					g_variant_get_boolean(param),
+					&error);
+	else if (!strcmp(name, DLR_INTERFACE_PROP_WHITE_LIST_ENTRIES))
+		prv_set_prop_wl_entries(manager, settings, param, &error);
+	else
+		cb_data->error = g_error_new(DLEYNA_SERVER_ERROR,
+					     DLEYNA_ERROR_UNKNOWN_PROPERTY,
+					     "Unknown property");
+
+	if (error != NULL)
+		cb_data->error = error;
+
+exit:
+	(void) g_idle_add(dlr_async_task_complete, cb_data);
 	DLEYNA_LOG_DEBUG("Exit");
 }
