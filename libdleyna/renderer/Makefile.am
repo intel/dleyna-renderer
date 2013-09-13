@@ -10,8 +10,6 @@ AM_CFLAGS =	$(GLIB_CFLAGS)				\
 		$(SOUP_CFLAGS)				\
 		-include config.h
 
-ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
-
 pkglib_LTLIBRARIES = libdleyna-renderer-1.0.la
 
 libdleyna_rendererincdir = $(includedir)/dleyna-1.0/libdleyna/renderer

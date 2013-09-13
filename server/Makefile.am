@@ -4,8 +4,6 @@ AM_CFLAGS =	$(GLIB_CFLAGS)				\
 		-I$(top_builddir)/libdleyna/renderer	\
 		-include config.h
 
-ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
-		
 libexec_PROGRAMS = dleyna-renderer-service
 
 dleyna_renderer_service_SOURCES =	daemon.c
