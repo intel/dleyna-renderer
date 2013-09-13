@@ -1,5 +1,3 @@
-libdleyna_rendererincdir = $(includedir)/dleyna-1.0/libdleyna/renderer
-
 DLEYNA_RENDERER_VERSION = 1:3:0
 
 AM_CFLAGS =	$(GLIB_CFLAGS)				\
@@ -15,6 +13,8 @@ AM_CFLAGS =	$(GLIB_CFLAGS)				\
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 
 pkglib_LTLIBRARIES = libdleyna-renderer-1.0.la
+
+libdleyna_rendererincdir = $(includedir)/dleyna-1.0/libdleyna/renderer
 
 libdleyna_rendererinc_HEADERS = 	control-point-renderer.h
 
@@ -51,9 +51,6 @@ MAINTAINERCLEANFILES =	Makefile.in		\
 
 sysconf_DATA = dleyna-renderer-service.conf
 
-pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = dleyna-renderer-1.0.pc
-
 EXTRA_DIST = 	$(sysconf_DATA)			\
 		async.h				\
 		device.h			\
@@ -64,8 +61,8 @@ EXTRA_DIST = 	$(sysconf_DATA)			\
 		task.h				\
 		upnp.h
 
-CLEANFILES = $(pkgconfig_DATA) dleyna-renderer-service.conf
-DISTCLEANFILES = $(pkgconfig_DATA) dleyna-renderer-service.conf
+CLEANFILES = dleyna-renderer-service.conf
+DISTCLEANFILES = dleyna-renderer-service.conf
 
 maintainer-clean-local:
 	rm -rf build-aux
