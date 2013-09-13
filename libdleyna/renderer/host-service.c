@@ -60,33 +60,43 @@ struct dlr_host_service_t_ {
 	GHashTable *servers;
 };
 
-static gchar *prv_compute_dlna_header(const gchar *filename)
+static void prv_compute_mime_and_dlna_header(const gchar *filename,
+					     gchar **mime_type,
+					     gchar **dlna_header,
+					     GError **error)
 {
 	gchar *uri;
 	GString *header;
-	GError *error = NULL;
 	GUPnPDLNAProfile *profile;
 	GUPnPDLNAProfileGuesser *guesser;
 	gboolean relaxed_mode = TRUE;
 	gboolean extended_mode = TRUE;
 	const char *profile_name;
-	const char *mime_type;
+	const char *dlna_mime_type;
 	GUPnPDLNAOperation operation;
 	GUPnPDLNAFlags flags;
 	GUPnPDLNAConversion conversion;
+	gchar *content_type = NULL;
+
+	*mime_type = NULL;
+
+	*dlna_header = NULL;
+
+	*error = NULL;
 
 	header = g_string_new("");
 
 	guesser = gupnp_dlna_profile_guesser_new(relaxed_mode, extended_mode);
 
-	uri = g_filename_to_uri(filename, NULL, &error);
+	uri = g_filename_to_uri(filename, NULL, error);
 	if (uri == NULL) {
 		DLEYNA_LOG_WARNING("Unable to convert filename: %s", filename);
 
-		if (error) {
-			DLEYNA_LOG_WARNING("Error: %s", error->message);
+		if (*error) {
+			DLEYNA_LOG_WARNING("Error: %s", (*error)->message);
 
-			g_error_free(error);
+			g_error_free(*error);
+			*error = NULL;
 		}
 
 		goto on_error;
@@ -96,14 +106,15 @@ static gchar *prv_compute_dlna_header(const gchar *filename)
 								uri,
 								5000,
 								NULL,
-								&error);
+								error);
 	if (profile == NULL) {
 		DLEYNA_LOG_WARNING("Unable to guess profile for URI: %s", uri);
 
-		if (error) {
-			DLEYNA_LOG_WARNING("Error: %s", error->message);
+		if (*error) {
+			DLEYNA_LOG_WARNING("Error: %s", (*error)->message);
 
-			g_error_free(error);
+			g_error_free(*error);
+			*error = NULL;
 		}
 
 		goto on_error;
@@ -119,20 +130,22 @@ static gchar *prv_compute_dlna_header(const gchar *filename)
 	conversion = GUPNP_DLNA_CONVERSION_NONE;
 	g_string_append_printf(header, "DLNA.ORG_CI=%.2x;", conversion);
 
-	mime_type = gupnp_dlna_profile_get_mime(profile);
-	if (mime_type != NULL) {
+	dlna_mime_type = gupnp_dlna_profile_get_mime(profile);
+	if (dlna_mime_type != NULL) {
+		*mime_type = g_strdup(dlna_mime_type);
+
 		flags = GUPNP_DLNA_FLAGS_BACKGROUND_TRANSFER_MODE;
 		flags |= GUPNP_DLNA_FLAGS_CONNECTION_STALL;
 		flags |= GUPNP_DLNA_FLAGS_DLNA_V15;
 
-		if (g_content_type_is_a(mime_type, "image/*")) {
+		if (g_content_type_is_a(dlna_mime_type, "image/*")) {
 			flags |= GUPNP_DLNA_FLAGS_INTERACTIVE_TRANSFER_MODE;
-		} else if (g_content_type_is_a(mime_type, "audio/*") ||
-			   g_content_type_is_a(mime_type, "video/*")) {
+		} else if (g_content_type_is_a(dlna_mime_type, "audio/*") ||
+			   g_content_type_is_a(dlna_mime_type, "video/*")) {
 			flags |= GUPNP_DLNA_FLAGS_STREAMING_TRANSFER_MODE;
 		} else {
 			DLEYNA_LOG_WARNING("Unsupported Mime Type: %s",
-					   mime_type);
+					   dlna_mime_type);
 
 			goto on_error;
 		}
@@ -145,13 +158,39 @@ static gchar *prv_compute_dlna_header(const gchar *filename)
 
 on_error:
 
+	if (*mime_type == NULL) {
+		content_type = g_content_type_guess(filename, NULL, 0, NULL);
+
+		if (content_type != NULL) {
+			*mime_type = g_content_type_get_mime_type(content_type);
+
+			if (*mime_type == NULL)
+				*error = g_error_new(DLEYNA_SERVER_ERROR,
+						     DLEYNA_ERROR_BAD_MIME,
+						     "Unable to determine MIME Type for %s",
+						     filename);
+
+			g_free(content_type);
+		} else {
+			*error = g_error_new(DLEYNA_SERVER_ERROR,
+					     DLEYNA_ERROR_BAD_MIME,
+					     "Unable to determine Content Type for %s",
+					     filename);
+		}
+	}
+
 	DLEYNA_LOG_DEBUG("contentFeatures.dlna.org: %s", header->str);
 
 	g_object_unref(guesser);
 
 	g_free(uri);
 
-	return g_string_free(header, FALSE);
+	if (*mime_type)
+		*dlna_header = g_string_free(header, FALSE);
+	else
+		(void) g_string_free(header, TRUE);
+
+	return;
 }
 
 static void prv_host_file_delete(gpointer host_file)
@@ -177,7 +216,6 @@ static dlr_host_file_t *prv_host_file_new(const gchar *file, unsigned int id,
 {
 	dlr_host_file_t *hf = NULL;
 	gchar *extension;
-	gchar *content_type = NULL;
 
 	if (!g_file_test(file, G_FILE_TEST_IS_REGULAR | G_FILE_TEST_EXISTS)) {
 		*error = g_error_new(DLEYNA_SERVER_ERROR,
@@ -191,37 +229,20 @@ static dlr_host_file_t *prv_host_file_new(const gchar *file, unsigned int id,
 	hf->id = id;
 	hf->clients = g_ptr_array_new_with_free_func(g_free);
 
-	content_type = g_content_type_guess(file, NULL, 0, NULL);
-
-	if (!content_type) {
-		*error = g_error_new(DLEYNA_SERVER_ERROR, DLEYNA_ERROR_BAD_MIME,
-				     "Unable to determine Content Type for %s",
-				     file);
-		goto on_error;
-	}
-
-	hf->mime_type =  g_content_type_get_mime_type(content_type);
-
-	if (!hf->mime_type) {
-		*error = g_error_new(DLEYNA_SERVER_ERROR, DLEYNA_ERROR_BAD_MIME,
-				     "Unable to determine MIME Type for %s",
-				     file);
-		goto on_error;
-	}
-
-	g_free(content_type);
-
 	extension = strrchr(file, '.');
 	hf->path = g_strdup_printf(DLR_HOST_SERVICE_ROOT"/%d%s",
 				   hf->id, extension ? extension : "");
 
-	hf->dlna_header = prv_compute_dlna_header(file);
+	prv_compute_mime_and_dlna_header(file, &hf->mime_type, &hf->dlna_header,
+					 error);
+
+	if (*error != NULL)
+		goto on_error;
 
 	return hf;
 
 on_error:
 
-	g_free(content_type);
 	prv_host_file_delete(hf);
 
 	return NULL;
