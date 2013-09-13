@@ -35,7 +35,8 @@ libdleyna_renderer_1_0_la_LIBADD =	$(GLIB_LIBS)		\
 					$(GUPNP_LIBS)		\
 					$(GUPNPAV_LIBS) 	\
 					$(GUPNPDLNA_LIBS) 	\
-					$(SOUP_LIBS)
+					$(SOUP_LIBS)		\
+					-lm
 
 MAINTAINERCLEANFILES =	Makefile.in		\
 			aclocal.m4		\
