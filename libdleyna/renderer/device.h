@@ -101,7 +101,7 @@ dlr_device_t *dlr_device_new(
 			dleyna_connector_id_t connection,
 			GUPnPDeviceProxy *proxy,
 			const gchar *ip_address,
-			guint counter,
+			const char *udn,
 			const dleyna_connector_dispatch_cb_t *dispatch_table,
 			const dleyna_task_queue_key_t *queue_id);
 
