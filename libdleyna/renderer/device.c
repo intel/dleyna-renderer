@@ -2108,9 +2108,11 @@ static gboolean prv_get_av_service_states_values(GUPnPServiceProxy *av_proxy,
 						 GVariant **mpris_tp_speeds,
 						 GPtrArray **upnp_tp_speeds,
 						 double *min_rate,
-						 double *max_rate)
+						 double *max_rate,
+						 gboolean *can_get_byte_pos)
 {
 	const GUPnPServiceStateVariableInfo *svi;
+	const GUPnPServiceActionInfo *sai;
 	GUPnPServiceIntrospection *introspection;
 	GError *error = NULL;
 	GVariant *speeds = NULL;
@@ -2163,6 +2165,12 @@ static gboolean prv_get_av_service_states_values(GUPnPServiceProxy *av_proxy,
 
 		*mpris_tp_speeds = g_variant_ref_sink(speeds);
 	}
+
+	sai = gupnp_service_introspection_get_action(
+						introspection,
+						"X_DLNA_GetBytePositionInfo");
+
+	*can_get_byte_pos = (sai != NULL);
 
 	g_object_unref(introspection);
 
@@ -2362,7 +2370,8 @@ static gboolean prv_props_update(dlr_device_t *device, dlr_task_t *task)
 			    &device->mpris_transport_play_speeds,
 			    &device->transport_play_speeds,
 			    &device->min_rate,
-			    &device->max_rate)) {
+			    &device->max_rate,
+			    &device->can_get_byte_position)) {
 			DLEYNA_LOG_DEBUG("Lost Device AV");
 
 			device_alive = FALSE;
@@ -2711,13 +2720,23 @@ void dlr_device_get_all_props(dlr_device_t *device, dlr_task_t *task,
 		   evented */
 
 		device_cb_data = g_new0(dlr_device_data_t, 1);
-		device_cb_data->ut.get_all_position.expected_props = 2;
 
 		cb_data->private = device_cb_data;
 		cb_data->free_private = prv_free_get_all_position_data;
 
-		prv_get_position_info(cb_data, "X_DLNA_GetBytePositionInfo",
-				      prv_get_all_byte_position_info_cb);
+		if (device->can_get_byte_position) {
+			device_cb_data->ut.get_all_position.expected_props = 2;
+			prv_get_position_info(
+					cb_data,
+					"X_DLNA_GetBytePositionInfo",
+					prv_get_all_byte_position_info_cb);
+		} else {
+			device_cb_data->ut.get_all_position.expected_props = 1;
+			prv_get_position_info(
+					cb_data,
+					"GetPositionInfo",
+					prv_get_all_position_info_cb);
+		}
 	} else {
 		prv_get_props(cb_data);
 		(void) g_idle_add(dlr_async_task_complete, cb_data);
