@@ -816,6 +816,52 @@ void dlr_device_construct(
 	DLEYNA_LOG_DEBUG("Exit");
 }
 
+static char *prv_convert_udn_to_path(const char *udn)
+{
+	char *uuid;
+	size_t len;
+	size_t dest_len;
+	size_t i;
+
+	/* This function will generate a valid dbus path from the udn
+	 * We are not going to check the UDN validity. We will try to
+	 * convert it anyway. To avoid any security problem, we will
+	 * check some limits and possibily return only a partial
+	 * UDN. For a better understanding, a valid UDN should be:
+	 * UDN = "uuid:4Hex-2Hex-2Hex-Hex-Hex-6Hex"
+	 *
+	 * The convertion rules are:
+	 * 1 - An invalid char will be escaped using its hexa representation
+	 *     prefixed with '_': Ex ':' -> '_3A'
+	 * 2 - The max size of the converted UDN can be 3 times the original
+	 *     size (if all char are not dbus compliant).
+	 *     The max size of a dbus path is an UINT32: G_MAXUINT32
+	 *     We will limit the of the converted string size to G_MAXUINT32 / 2
+	 *     otherwise we will never have space to generate object path.
+	 */
+
+	len = strlen(udn);
+	dest_len = MIN(len * 3, G_MAXUINT32 / 2);
+
+	uuid = g_malloc(dest_len + 1);
+	i = 0;
+
+	while (*udn && (i < dest_len))
+	{
+		if (g_ascii_isalnum(*udn) || (*udn == '_'))
+			uuid[i++] = *udn;
+		else
+			i += g_snprintf(uuid + i, dest_len + 1,"_%02x", *udn);
+
+		udn++;
+	}
+
+
+	uuid[i]=0;
+
+	return uuid;
+}
+
 dlr_device_t *dlr_device_new(
 			dleyna_connector_id_t connection,
 			GUPnPDeviceProxy *proxy,
@@ -831,15 +877,11 @@ dlr_device_t *dlr_device_new(
 
 	DLEYNA_LOG_DEBUG("New Device on %s", ip_address);
 
-	/* Strip 'uuid:' string prefix if exists and replace unauthorized
-	 * dbus path char from uuid string */
-	uuid = strchr(udn, ':');
-	uuid = g_strdup(uuid ? uuid + 1 : udn);
-	uuid = g_strdelimit(uuid, "-", '_');
-
+	uuid = prv_convert_udn_to_path(udn);
 	new_path = g_strdup_printf("%s/%s", DLEYNA_SERVER_PATH, uuid);
-	DLEYNA_LOG_DEBUG("Server Path %s", new_path);
 	g_free(uuid);
+
+	DLEYNA_LOG_DEBUG("Server Path %s", new_path);
 
 	dev = g_new0(dlr_device_t, 1);
 
