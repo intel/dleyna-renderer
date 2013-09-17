@@ -85,6 +85,7 @@ struct dlr_device_t_ {
 	gchar *rate;
 	double min_rate;
 	double max_rate;
+	gboolean can_get_byte_position;
 	guint construct_step;
 	dlr_device_icon_t icon;
 	GHashTable *rc_event_handlers;
