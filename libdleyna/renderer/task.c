@@ -534,8 +534,11 @@ void dlr_task_complete(dlr_task_t *task)
 			else
 				result = g_variant_new(task->result_format,
 						       task->result);
+
+			g_variant_ref_sink(result);
 			dlr_renderer_get_connector()->return_response(
 						task->invocation, result);
+			g_variant_unref(result);
 		} else {
 			dlr_renderer_get_connector()->return_response(
 							task->invocation,
