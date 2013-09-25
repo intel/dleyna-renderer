@@ -1118,16 +1118,36 @@ static GVariant *prv_as_prop_from_list(GList *list)
 	return g_variant_ref_sink(g_variant_builder_end(&vb));
 }
 
-static void prv_update_prop_dlna_device_classes(GUPnPDeviceInfo *proxy,
-						GHashTable *props)
+static GVariant *prv_update_prop_dlna_device_classes(GUPnPDeviceInfo *proxy,
+						     GHashTable *props)
 {
-	GList *dlna_classes =
+	GVariant *retval;
+	GList *dlna_classes;
+
+	retval = g_hash_table_lookup(props,
+				     DLR_INTERFACE_PROP_DLNA_DEVICE_CLASSES);
+	if (retval)
+		goto on_exit;
+
+	dlna_classes =
 		gupnp_device_info_list_dlna_device_class_identifier(proxy);
 
-	if (dlna_classes != NULL)
-		g_hash_table_insert(props,
-				    DLR_INTERFACE_PROP_DLNA_DEVICE_CLASSES,
-				    prv_as_prop_from_list(dlna_classes));
+	if (!dlna_classes)
+		goto on_exit;
+
+	retval = prv_as_prop_from_list(dlna_classes);
+	g_hash_table_insert(props, DLR_INTERFACE_PROP_DLNA_DEVICE_CLASSES,
+			    retval);
+
+	/* TODO: We should actually be calling g_list_free_full here but the
+	   strings in dlna_classes are allocated by libxml and not glib.  So
+	   until this is fixed we're stuck with this.  */
+
+	g_list_free(dlna_classes);
+
+on_exit:
+
+	return retval;
 }
 
 static void prv_add_actions(dlr_device_t *device,
@@ -1165,10 +1185,8 @@ static void prv_add_actions(dlr_device_t *device,
 
 	info = (GUPnPDeviceInfo *)dlr_device_get_context(device)->device_proxy;
 
-	prv_update_prop_dlna_device_classes(info, device->props.device_props);
-
-	val = g_hash_table_lookup(device->props.device_props,
-				  DLR_INTERFACE_PROP_DLNA_DEVICE_CLASSES);
+	val = prv_update_prop_dlna_device_classes(info,
+						  device->props.device_props);
 
 	/* If this device is not dlna compatible, there is no need */
 	/* to check for “X_DLNA_SeekTime” */
@@ -2234,7 +2252,7 @@ static void prv_update_device_props(GUPnPDeviceInfo *proxy, GHashTable *props)
 	GVariant *val;
 	gchar *str;
 
-	prv_update_prop_dlna_device_classes(proxy, props);
+	(void ) prv_update_prop_dlna_device_classes(proxy, props);
 
 	val = g_variant_ref_sink(g_variant_new_string(
 				gupnp_device_info_get_device_type(proxy)));
