@@ -2252,7 +2252,7 @@ static void prv_update_device_props(GUPnPDeviceInfo *proxy, GHashTable *props)
 	GVariant *val;
 	gchar *str;
 
-	(void ) prv_update_prop_dlna_device_classes(proxy, props);
+	(void) prv_update_prop_dlna_device_classes(proxy, props);
 
 	val = g_variant_ref_sink(g_variant_new_string(
 				gupnp_device_info_get_device_type(proxy)));
