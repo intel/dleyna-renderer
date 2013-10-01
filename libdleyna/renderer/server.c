@@ -157,6 +157,8 @@ static const gchar g_root_introspection[] =
 	"    <signal name='"DLR_INTERFACE_LOST_RENDERER"'>"
 	"      <arg type='o' name='"DLR_INTERFACE_PATH"'/>"
 	"    </signal>"
+	"    <property type='as' name='"DLR_INTERFACE_PROP_NEVER_QUIT"'"
+	"       access='readwrite'/>"
 	"    <property type='as' name='"DLR_INTERFACE_PROP_WHITE_LIST_ENTRIES"'"
 	"       access='readwrite'/>"
 	"    <property type='b' name='"DLR_INTERFACE_PROP_WHITE_LIST_ENABLED"'"
