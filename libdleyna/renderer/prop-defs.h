@@ -30,6 +30,7 @@
 #define DLR_INTERFACE_PROPERTIES_CHANGED "PropertiesChanged"
 
 /* Manager Properties */
+#define DLR_INTERFACE_PROP_NEVER_QUIT "NeverQuit"
 #define DLR_INTERFACE_PROP_WHITE_LIST_ENTRIES "WhiteListEntries"
 #define DLR_INTERFACE_PROP_WHITE_LIST_ENABLED "WhiteListEnabled"
 
