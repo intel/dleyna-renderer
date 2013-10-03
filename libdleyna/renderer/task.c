@@ -433,7 +433,8 @@ dlr_task_t *dlr_task_manager_get_prop_new(dleyna_connector_msg_id_t invocation,
 {
 	dlr_task_t *task;
 
-	task = prv_device_task_new(DLR_TASK_MANAGER_GET_PROP, invocation, path, "(v)");
+	task = prv_device_task_new(DLR_TASK_MANAGER_GET_PROP, invocation,
+				   path, "(v)");
 
 	g_variant_get(parameters, "(ss)", &task->ut.get_prop.interface_name,
 		      &task->ut.get_prop.prop_name);
