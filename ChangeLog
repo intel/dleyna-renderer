@@ -1,3 +1,16 @@
+version 0.4.0
+	- Logs: provide correct component version
+	- Fix typos in the rendererconsole.py test application
+	- Use GUPnP Mime Type if available
+	  https://github.com/01org/dleyna-renderer/issues/120
+	- Fix dlr_device_set_position implementation
+	  https://github.com/01org/dleyna-renderer/issues/115
+	- Fix dlr_device_seek implementation
+	  https://github.com/01org/dleyna-renderer/issues/115
+	- Fix a couple of memory leaks
+	- New network filtering API
+	- The 'never quit' option can be set via the connector 
+
 version 0.2.2
 	- Various build optimizations
 	- Fix a crash case when the server stops
