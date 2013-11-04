@@ -25,7 +25,8 @@
 
 typedef struct dlr_host_service_t_ dlr_host_service_t;
 
-void dlr_host_service_new(dlr_host_service_t **host_service);
+void dlr_host_service_new(dlr_host_service_t **host_service,
+			  guint port);
 
 gchar *dlr_host_service_add(dlr_host_service_t *host_service,
 			    const gchar *device_if, const gchar *client,

@@ -15,6 +15,10 @@ connector-name=@with_connector_name@
 # Source port for SSDP messages
 #port=4321
 
+# Port for Push host fileserver
+# If unset, a random available port will be used.
+#push-host-port=5432
+
 # Log configuration options
 [log]
 

@@ -362,6 +362,7 @@ static void prv_on_context_available(GUPnPContextManager *context_manager,
 
 dlr_upnp_t *dlr_upnp_new(dleyna_connector_id_t connection,
 			 guint port,
+			 guint push_host_port,
 			 const dleyna_connector_dispatch_cb_t *dispatch_table,
 			 dlr_upnp_callback_t found_server,
 			 dlr_upnp_callback_t lost_server)
@@ -386,7 +387,7 @@ dlr_upnp_t *dlr_upnp_new(dleyna_connector_id_t connection,
 			 G_CALLBACK(prv_on_context_available),
 			 upnp);
 
-	dlr_host_service_new(&upnp->host_service);
+	dlr_host_service_new(&upnp->host_service, push_host_port);
 
 	return upnp;
 }

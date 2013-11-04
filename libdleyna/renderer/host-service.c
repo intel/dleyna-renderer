@@ -58,6 +58,7 @@ struct dlr_host_server_t_ {
 
 struct dlr_host_service_t_ {
 	GHashTable *servers;
+	guint port;
 };
 
 static void prv_compute_mime_and_dlna_header(const gchar *filename,
@@ -375,12 +376,13 @@ on_error:
 }
 
 static dlr_host_server_t *prv_host_server_new(const gchar *device_if,
+					      guint port,
 					      GError **error)
 {
 	dlr_host_server_t *server = NULL;
 	SoupAddress *addr;
 
-	addr = soup_address_new(device_if, SOUP_ADDRESS_ANY_PORT);
+	addr = soup_address_new(device_if, port);
 
 	if (soup_address_resolve_sync(addr, NULL) != SOUP_STATUS_OK) {
 		*error = g_error_new(DLEYNA_SERVER_ERROR,
@@ -408,13 +410,14 @@ on_error:
 	return server;
 }
 
-void dlr_host_service_new(dlr_host_service_t **host_service)
+void dlr_host_service_new(dlr_host_service_t **host_service, guint port)
 {
 	dlr_host_service_t *hs;
 
 	hs = g_new(dlr_host_service_t, 1);
 	hs->servers = g_hash_table_new_full(g_str_hash, g_str_equal,
 					    g_free, prv_host_server_delete);
+	hs->port = port;
 
 	*host_service = hs;
 }
@@ -467,7 +470,9 @@ gchar *dlr_host_service_add(dlr_host_service_t *host_service,
 	server = g_hash_table_lookup(host_service->servers, device_if);
 
 	if (!server) {
-		server = prv_host_server_new(device_if, error);
+		server = prv_host_server_new(device_if,
+				     host_service->port,
+				     error);
 
 		if (!server)
 			goto on_error;

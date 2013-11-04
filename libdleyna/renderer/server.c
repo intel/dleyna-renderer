@@ -1127,6 +1127,7 @@ static gboolean prv_control_point_start_service(
 	if (g_context.dlr_id[DLR_MANAGER_INTERFACE_MANAGER]) {
 		g_context.upnp = dlr_upnp_new(connection,
 					     dleyna_settings_port(g_context.settings),
+					     dleyna_settings_push_host_port(g_context.settings),
 					     g_server_vtables,
 					     prv_found_media_server,
 					     prv_lost_media_server);

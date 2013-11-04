@@ -43,6 +43,7 @@ typedef void (*dlr_upnp_task_complete_t)(dlr_task_t *task, GError *error);
 
 dlr_upnp_t *dlr_upnp_new(dleyna_connector_id_t connection,
 			 uint port,
+			 uint push_host_port,
 			 const dleyna_connector_dispatch_cb_t *dispatch_table,
 			 dlr_upnp_callback_t found_server,
 			 dlr_upnp_callback_t lost_server);
