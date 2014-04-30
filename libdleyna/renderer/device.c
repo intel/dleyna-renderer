@@ -2616,8 +2616,19 @@ void dlr_device_set_prop(dlr_device_t *device, dlr_task_t *task,
 	}
 
 	if (g_strcmp0(set_prop->prop_name, DLR_INTERFACE_PROP_RATE) == 0) {
+		GVariant *state;
+
 		prv_set_rate(set_prop->params, cb_data);
-		goto exit;
+
+		state = g_hash_table_lookup(device->props.player_props,
+									DLR_INTERFACE_PROP_PLAYBACK_STATUS);
+		if (!state || strcmp(g_variant_get_string(state, NULL), "Playing")) {
+			goto exit;
+		}
+
+		dlr_device_play(device, task, cb);
+		/* dlr_device_play completes task: no need for goto exit */
+		return;
 	}
 
 	if ((g_strcmp0(set_prop->prop_name, DLR_INTERFACE_PROP_VOLUME) != 0) &&
