@@ -1139,11 +1139,7 @@ static GVariant *prv_update_prop_dlna_device_classes(GUPnPDeviceInfo *proxy,
 	g_hash_table_insert(props, DLR_INTERFACE_PROP_DLNA_DEVICE_CLASSES,
 			    retval);
 
-	/* TODO: We should actually be calling g_list_free_full here but the
-	   strings in dlna_classes are allocated by libxml and not glib.  So
-	   until this is fixed we're stuck with this.  */
-
-	g_list_free(dlna_classes);
+	g_list_free_full(dlna_classes, g_free);
 
 on_exit:
 
