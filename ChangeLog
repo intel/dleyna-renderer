@@ -1,3 +1,19 @@
+version 0.5.0
+	- [Deprecated API] Use new API instead of deprecated
+	- [Device] Free dlna class strings after use
+	  https://github.com/01org/dleyna-renderer/issues/129
+    - host-service: use push-host-port setting for the web server
+    - upnp: use port setting when creating GUPnPContextManager
+	  https://github.com/01org/dleyna-renderer/issues/141
+	- [Autoconf] Add Math lib to link
+      https://github.com/01org/dleyna-renderer/issues/117
+	- Fix various configure & build issues
+	  [Autoconf] Sub Makefile: Remove ACLOCAL_AMFLAGS
+      https://github.com/01org/dleyna-renderer/issues/124
+	- daemon: use GLib signal handling
+	- [Device] Update playspeed when rate is set
+	- [Configuration] Remove libdleyna-renderer .pc file
+
 version 0.4.0
 	- Logs: provide correct component version
 	- Fix typos in the rendererconsole.py test application
