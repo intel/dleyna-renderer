@@ -688,7 +688,9 @@ static void prv_remove_client(const gchar *name)
 
 	dlr_upnp_lost_client(g_context.upnp, name);
 
-	g_context.watchers--;
+	if (g_context.watchers > 0)
+		g_context.watchers--;
+
 	if (g_context.watchers == 0)
 		if (!dleyna_settings_is_never_quit(g_context.settings))
 			dleyna_task_processor_set_quitting(g_context.processor);
