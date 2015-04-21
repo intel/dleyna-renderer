@@ -45,7 +45,6 @@ struct dlr_upnp_t_ {
 	void *user_data;
 	GHashTable *server_udn_map;
 	GHashTable *server_uc_map;
-	guint counter;
 	dlr_host_service_t *host_service;
 };
 
@@ -186,14 +185,10 @@ static void prv_server_available_cb(GUPnPControlPoint *cp,
 		queue_id = prv_create_device_queue(&priv_t);
 
 		device = dlr_device_new(upnp->connection, proxy, ip_address,
-					upnp->counter,
-					upnp->interface_info,
-					queue_id);
+					udn, upnp->interface_info, queue_id);
 
 		prv_update_device_context(priv_t, upnp, udn, device, ip_address,
 					  queue_id);
-
-		upnp->counter++;
 	} else {
 		DLEYNA_LOG_DEBUG("Device Found");
 
