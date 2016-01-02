@@ -103,6 +103,12 @@ static void prv_compute_mime_and_dlna_header(const gchar *filename,
 		goto on_error;
 	}
 
+	operation = GUPNP_DLNA_OPERATION_RANGE;
+	g_string_append_printf(header, "DLNA.ORG_OP=%.2x;", operation);
+
+	conversion = GUPNP_DLNA_CONVERSION_NONE;
+	g_string_append_printf(header, "DLNA.ORG_CI=%.2x;", conversion);
+
 	profile = gupnp_dlna_profile_guesser_guess_profile_sync(guesser,
 								uri,
 								5000,
@@ -124,12 +130,6 @@ static void prv_compute_mime_and_dlna_header(const gchar *filename,
 	profile_name = gupnp_dlna_profile_get_name(profile);
 	if (profile_name != NULL)
 		g_string_append_printf(header, "DLNA.ORG_PN=%s;", profile_name);
-
-	operation = GUPNP_DLNA_OPERATION_RANGE;
-	g_string_append_printf(header, "DLNA.ORG_OP=%.2x;", operation);
-
-	conversion = GUPNP_DLNA_CONVERSION_NONE;
-	g_string_append_printf(header, "DLNA.ORG_CI=%.2x;", conversion);
 
 	dlna_mime_type = gupnp_dlna_profile_get_mime(profile);
 	if (dlna_mime_type != NULL) {
