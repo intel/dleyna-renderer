@@ -723,6 +723,7 @@ static void prv_control_point_stop_service(void)
 	if (g_context.upnp) {
 		dlr_upnp_unsubscribe(g_context.upnp);
 		dlr_upnp_delete(g_context.upnp);
+		g_context.upnp = NULL;
 	}
 
 	if (g_context.connection) {
