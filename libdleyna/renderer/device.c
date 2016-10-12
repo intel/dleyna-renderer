@@ -2964,6 +2964,8 @@ static void prv_open_uri_cb(GUPnPServiceProxy *proxy,
 		type = "OPEN NEXT URI";
 	else if (cb_data->task.type == DLR_TASK_SET_URI)
 		type = "SET URI";
+	else
+		type = "Unknown";
 
 	DLEYNA_LOG_DEBUG("Task: %s", type);
 #endif
