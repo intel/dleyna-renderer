@@ -1,3 +1,18 @@
+version 0.6.0
+	- Ensure that g_context.watchers has a valid value
+	  Merge pull request #150
+	- Merge pull request #132
+	- Used core functionality dleyna_core_prv_convert_udn_to_path for persistent path
+	- [m4] Don't use bash arrays in m4 macros
+	- [m4] Don't use bash "let" builtin
+	- [m4] Use AS_VAR_APPEND macro instead of "+="
+	- Merge pull request #154
+	- Avoid any attempts to delete the same dlr_upnp_t twice
+	  Merge pull request #160
+	- Fix for issue #161 -- Uninitialized argument value in prv_open_uri_cb
+	- Merge pull request #162 from 01org/ljsachs-patch-1
+	- Changed the Copyright to 2017
+
 version 0.5.0
 	- [Deprecated API] Use new API instead of deprecated
 	- [Device] Free dlna class strings after use
