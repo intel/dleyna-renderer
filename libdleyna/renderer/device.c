@@ -1201,7 +1201,7 @@ static void prv_add_actions(dlr_device_t *device,
 				continue;
 			}
 
-			DLEYNA_LOG_DEBUG("DLNA version ≥ 1.50 pour %s",
+			DLEYNA_LOG_DEBUG("DLNA version ≥ 1.50 for %s",
 					 device->path);
 			timeseek_missing = TRUE;
 			g_free(dlna_device_class);
