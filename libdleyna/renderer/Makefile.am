@@ -22,6 +22,7 @@ libdleyna_renderer_1_0_la_LDFLAGS =	-version-info $(DLEYNA_RENDERER_VERSION) \
 libdleyna_renderer_1_0_la_SOURCES =	$(libdleyna_rendererinc_HEADERS) \
 					async.c				 \
 					device.c	 		 \
+					gasync-task.c			 \
 					host-service.c			 \
 					manager.c			 \
 					server.c			 \
@@ -53,6 +54,7 @@ sysconf_DATA = dleyna-renderer-service.conf
 EXTRA_DIST = 	$(sysconf_DATA)			\
 		async.h				\
 		device.h			\
+		gasync-task.h			 \
 		host-service.h			\
 		prop-defs.h			\
 		manager.h			\
