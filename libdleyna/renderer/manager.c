@@ -25,7 +25,6 @@
 
 #include <libdleyna/core/error.h>
 #include <libdleyna/core/log.h>
-#include <libdleyna/core/service-task.h>
 #include <libdleyna/core/white-list.h>
 
 #include "async.h"
