@@ -977,22 +977,32 @@ void dlr_device_construct(
 				       NULL, priv_t);
 
 	av_proxy = context->service_proxies.av_proxy;
-	if (dev->construct_step < 2)
-		dleyna_gasync_task_add(queue_id,
-				       prv_introspect,
-				       G_OBJECT(av_proxy),
-				       prv_introspect_av_cb,
-				       cancellable,
-				       NULL, priv_t);
+	if (dev->construct_step < 2) {
+		if (av_proxy == NULL) {
+			dev->construct_step++;
+		} else {
+			dleyna_gasync_task_add(queue_id,
+					       prv_introspect,
+					       G_OBJECT(av_proxy),
+					       prv_introspect_av_cb,
+					       cancellable,
+					       NULL, priv_t);
+		}
+	}
 
 	rc_proxy = context->service_proxies.rc_proxy;
-	if (dev->construct_step < 3)
-		dleyna_gasync_task_add(queue_id,
-				       prv_introspect,
-				       G_OBJECT(rc_proxy),
-				       prv_introspect_rc_cb,
-				       cancellable,
-				       NULL, priv_t);
+	if (dev->construct_step < 3) {
+		if (rc_proxy == NULL) {
+			dev->construct_step++;
+		} else {
+			dleyna_gasync_task_add(queue_id,
+					       prv_introspect,
+					       G_OBJECT(rc_proxy),
+					       prv_introspect_rc_cb,
+					       cancellable,
+					       NULL, priv_t);
+		}
+	}
 
 
 	/* The following task should always be completed */
