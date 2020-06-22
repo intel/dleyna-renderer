@@ -1,4 +1,4 @@
-SUBDIRS = libdleyna/renderer
+SUBDIRS = doc libdleyna/renderer
 
 if BUILD_SERVER
 SUBDIRS += server

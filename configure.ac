@@ -34,6 +34,11 @@ LT_PREREQ([2.2.6])
 LT_INIT([dlopen disable-static])
 LT_LANG([C])
 
+AC_PATH_PROG([XSLTPROC], [xsltproc])
+if test -z "$XSLTPROC"; then
+  AC_MSG_ERROR([xsltproc not found])
+fi
+
 # Checks for libraries.
 PKG_PROG_PKG_CONFIG(0.16)
 PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.28])
@@ -231,6 +236,7 @@ AC_SUBST([with_log_level])
 AC_SUBST([with_log_type])
 
 AC_CONFIG_FILES([Makefile						\
+		 doc/Makefile						\
 		 libdleyna/renderer/Makefile				\
 		 libdleyna/renderer/dleyna-renderer-service.conf	\
 		 server/dleyna-renderer-service-1.0.pc			\
