@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refentry id="dleyna-renderer-service.conf.5">
+  <refentryinfo>
+    <title>dleyna-renderer-service.conf</title>
+    <date>June 2020</date>
+    <productname>dLeyna</productname>
+  </refentryinfo>
+
+  <refmeta>
+    <refentrytitle>dleyna-renderer-service.conf</refentrytitle>
+    <manvolnum>5</manvolnum>
+    <refmiscinfo class="manual">Linux Programmer's Manual</refmiscinfo>
+  </refmeta>
+
+  <refnamediv>
+    <refname>dleyna-renderer-service.conf</refname>
+    <refpurpose>Configuration file for dleyna-renderer</refpurpose>
+  </refnamediv>
+
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>/etc/dleyna-renderer-service.conf</command>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+
+
+  <refsect1>
+    <title>DESCRIPTION</title>
+    <para>
+      The <command>dleyna-renderer-service</command> program provides the
+      <emphasis>com.intel.dleyna-renderer</emphasis> name on the session
+      message bus. It is a service for discovering and manipulating DLNA
+      Digital Media Renderers (or DMRs).
+    </para>
+    <para>
+      Users or administrators should never need to start this daemon as it will
+      be automatically started by
+      <citerefentry><refentrytitle>dbus-daemon</refentrytitle><manvolnum>1</manvolnum></citerefentry>
+      whenever a process sends a D-Bus message to the
+      <emphasis>com.intel.dleyna-renderer</emphasis> name on the session bus.
+    </para>
+    <para>
+      This file can be used to configure the behaviour of the
+      <command>dleyna-renderer-service</command> program.
+    </para>
+  </refsect1>
+
+  <refsect1>
+    <title>FILE FORMAT</title>
+    <para>
+      The configuration file format is the so-called key file (sort of
+      ini-style) format. It consists of sections (or groups) of key-value
+      Lines beginning with a '#' and blank lines are considered comments.
+      Sections are started by a header line containing the section enclosed
+      in '[' and ']', and ended implicitly by the start of the next section
+      or the end of the file. Each key-value pair must be contained in a
+      section.
+    </para>
+  </refsect1>
+
+  <refsect1>
+    <title>GENERAL SECTION</title>
+    <variablelist>
+      <varlistentry>
+        <term><option>connector-name=dbus</option></term>
+        <listitem>
+          <para>
+            The name of the inter-process communication method to be used.
+            The only supported value is <emphasis>dbus</emphasis>.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>never-quit=false|true</option></term>
+        <listitem>
+          <para>
+            Whether the process should stay alive forever or quit when the
+            last client disconnects. The default value is
+            <emphasis>false</emphasis>.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>port</option></term>
+        <listitem>
+          <para>
+            Source port for Simple Service Discovery Protocol (or SSDP)
+            messages. The default value is <emphasis>0</emphasis> which
+            means that a random available port will be used.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>push-host-port</option></term>
+        <listitem>
+          <para>
+            Port for push host file server. The default value is
+            <emphasis>0</emphasis> which means that a random available
+            port will be used.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1>
+    <title>LOG SECTION</title>
+    <variablelist>
+      <varlistentry>
+        <term><option>log-type=0|1|2</option></term>
+        <listitem>
+          <para>
+            The logging method to be used. Three technologies are supported.
+            0 for syslog, 1 for GLib, and 2 for file. The default value is
+            <emphasis>0</emphasis>.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>log-level=0|1|2|...|8</option></term>
+        <listitem>
+          <para>
+            Comma-separated list of logging levels. The levels are 1 for
+            critical, 2 for error, 3 for warning, 4 for message, 5 for info
+            and 6 for debug. 0 excludes all levels, 7 is a combination of
+            critical, error and info, and 8 includes all levels.
+          </para>
+          <para>
+            The default value is <emphasis>7</emphasis>.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1>
+    <title>NETF SECTION</title>
+    <variablelist>
+      <varlistentry>
+        <term><option>netf-enabled=false|true</option></term>
+        <listitem>
+          <para>
+            Whether network filtering should be enabled or not. The default
+            values is <emphasis>false</emphasis>.
+          </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>netf-list</option></term>
+        <listitem>
+          <para>
+            Comma-separated list of interface names, service set identifiers
+            (or SSIDs), and Internet Protocol (or IP) addresses. If network
+            filtering is requested but the list is empty, then filtering
+            remains disabled.
+          </para>
+          <para>
+            The list is empty by default.
+          </para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+
+  <refsect1>
+    <title>BUGS</title>
+    <para>
+      Please send bug reports to either the distribution bug tracker
+      or the upstream bug tracker at
+      <ulink url="https://github.com/intel/dleyna-renderer/issues"></ulink>.
+    </para>
+  </refsect1>
+
+  <refsect1>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+        <refentrytitle>dbus-daemon</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+</refentry>
