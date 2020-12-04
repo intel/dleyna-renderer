@@ -590,7 +590,7 @@ void dlr_device_subscribe_to_service_changes(dlr_device_t *device)
 						      device);
 		context->subscribed_rc = TRUE;
 
-		g_signal_connect(service_proxies->av_proxy,
+		g_signal_connect(service_proxies->rc_proxy,
 				 "subscription-lost",
 				 G_CALLBACK(prv_rc_subscription_lost_cb),
 				 context);
