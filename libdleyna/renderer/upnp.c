@@ -28,10 +28,10 @@
 
 #include <libdleyna/core/error.h>
 #include <libdleyna/core/log.h>
-#include <libdleyna/core/service-task.h>
 
 #include "async.h"
 #include "device.h"
+#include "gasync-task.h"
 #include "host-service.h"
 #include "prop-defs.h"
 #include "upnp.h"
@@ -116,12 +116,12 @@ static const dleyna_task_queue_key_t *prv_create_device_queue(
 
 	queue_id = dleyna_task_processor_add_queue(
 			dlr_renderer_service_get_task_processor(),
-			dleyna_service_task_create_source(),
+			dleyna_gasync_task_create_source(),
 			DLR_RENDERER_SINK,
 			DLEYNA_TASK_QUEUE_FLAG_AUTO_REMOVE,
-			dleyna_service_task_process_cb,
-			dleyna_service_task_cancel_cb,
-			dleyna_service_task_delete_cb);
+			dleyna_gasync_task_process_cb,
+			dleyna_gasync_task_cancel_cb,
+			dleyna_gasync_task_delete_cb);
 	dleyna_task_queue_set_finally(queue_id, prv_device_chain_end);
 	dleyna_task_queue_set_user_data(queue_id, *priv_t);
 
@@ -243,8 +243,8 @@ static void prv_server_unavailable_cb(GUPnPControlPoint *cp,
 
 	udn = gupnp_device_info_get_udn((GUPnPDeviceInfo *)proxy);
 
-	ip_address = gupnp_context_get_host_ip(
-		gupnp_control_point_get_context(cp));
+	ip_address = gssdp_client_get_host_ip(
+		GSSDP_CLIENT(gupnp_control_point_get_context(cp)));
 
 	if (!udn || !ip_address)
 		goto on_error;
